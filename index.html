@@ -162,7 +162,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
 <h3 class="rh">진행 순서</h3>
 <table><tr><th>언제</th><th>하는 일</th></tr>
 <tr><td><b>0낮</b></td><td>범인이 가운데 사람을 죽여요 (방법은 끝까지 고정)<br><small>의사가 있는 판: 무엇에 죽었는지 공개 (예: 칼에 맞았다)<br>의사가 없는 판: "가운데 사람이 죽었다"만 나와요</small></td></tr>
-<tr><td><b>1낮</b> 안개</td><td>내 <u>흔적</u> 말하기 · 범인만 거짓말 가능</td></tr>
+<tr><td><b>1낮</b> 안개</td><td>내 <u>흔적</u> 말하기 · 범인 1번만 거짓말 가능 (2·3번은 진짜 흔적)</td></tr>
 <tr><td><b>밤</b></td><td>한 명씩 20초 안에 <u>능력</u> 쓰기</td></tr>
 <tr><td><b>2낮</b> 안개</td><td>내 <u>직업</u> 말하기 · 일부 직업 거짓말 가능<br><small>4~5명이면 이어서 투표</small></td></tr>
 <tr><td><b>3낮~</b></td><td>회의 2분: 본 것 <u>1개 공개</u> + <u>투표</u></td></tr>
@@ -197,7 +197,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
 <tr><td>나머지</td><td>4가지 중 랜덤</td></tr></table>
 <h3 class="rh">흔적 알아내기</h3>
 <ul class="ck">
-<li><b>1낮</b> 모두 자기 흔적을 말해요 (범인만 거짓말)</li>
+<li><b>1낮</b> 모두 자기 흔적을 말해요 (범인 1번만 거짓말)</li>
 <li><b>경찰</b> 매일 밤 흔적 조사 → 진짜 흔적 · 2밤부터 게임당 1번 직업 조사 → 진짜 직업</li>
 <li><b>의사</b> 시신 검사 → 사인 → 범인 흔적 추리</li>
 <li><b>0낮</b> 의사가 있는 판이면 가운데 사람이 무엇에 죽었는지 모두에게 공개돼요 (없으면 "가운데 사람이 죽었다"만)</li>
@@ -291,7 +291,7 @@ function startDay(d){G.day=d;G.banner='';if(G.nq&&G.nq.length){G.nq.forEach(([x,
     if(d===1)alive().forEach(p=>{const o=fogOpts(p);if(o.length===1&&o[0]==='없음')G.done[p.id]=1});
     alive().forEach(p=>{if(p.ai&&!G.done[p.id]){laterBot(p,2500+Math.random()*8000,()=>botFog(p));if(p.role==='기자')laterBot(p,5000+Math.random()*10000,()=>botTip(p))}})}
   else startMeet(d)}
-function fogOpts(p){if(G.day===1)return p.role==='범인'?TRACES.slice():[p.trace||'없음'];return FAKE_OK.includes(p.role)?JOBS.filter(j=>j!=='범인'):[p.role]}
+function fogOpts(p){if(G.day===1)return p.role==='범인'&&(p.knum||0)<=1?TRACES.slice():[p.trace||'없음'];return FAKE_OK.includes(p.role)?JOBS.filter(j=>j!=='범인'):[p.role]}
 function fogDef(p){const o=fogOpts(p);if(G.day===1)return o.includes(p.trace)?p.trace:o[0];if(p.fake&&o.includes(p.fake))return p.fake;return o.includes(p.role)?p.role:'백수'}
 function fogSubmit(p,v){if(!fogOpts(p).includes(v))return;G.done[p.id]=1;G.dirty=true;const c=cn(p.id);ml(p,G.day===1?`흔적을 "${v}"${josa(v,"이","").slice(v.length)}라고 말함`:`직업을 "${v}"${josa(v,"이","").slice(v.length)}라고 말함`);
   if(G.day===1)H(`${cr(p.id)}: 흔적이 "${v}"라고 말함${v!==p.trace?` (거짓말! 진짜는 ${p.trace})`:''}`);else H(`${cr(p.id)}: 직업이 "${v}"라고 말함${v!==p.role?' (거짓말!)':''}`);
