@@ -171,7 +171,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
 <ul class="ck">
 <li><b>안개</b> 1~2낮과 밤엔 내 양옆 것만 보여요 (기자는 4~5인 2명 · 6~7인 3명 · 8~10인 4명)</li>
 <li><b>밤 정보</b> 양옆이 밤에 고른 것은 다음 날 낮에 보여요</li>
-<li><b>투표</b> 최다 득표 처형 · 동률(미선택과 같은 표 수 포함)이거나 기권 과반이면 처형 없음 · 나에게도 투표 가능</li>
+<li><b>투표</b> 실시간으로 표 수가 보이고, 회의 중엔 투표를 바꾸거나 취소할 수 있어요 (모두 투표하면 6초 뒤 마감) · 최다 득표 처형 · 동률(미선택과 같은 표 수 포함)이거나 기권 과반이면 처형 없음 · 나에게도 투표 가능</li>
 <li><b>죽으면</b> 죽은 사람의 직업은 비공개예요 (<b>목사</b>만 알 수 있어요) · 죽은 나는 모든 직업이 보여요 (환자는 두 번째 죽을 때)</li>
 <li><b>메모</b> 원탁의 사람을 누르면 나만 보는 메모를 남길 수 있어요</li>
 <li><b>범인 2명</b> 6~7명이면 1~2명 랜덤, 8명 이상이면 항상 2명 · 서로 몰라요</li>
@@ -408,7 +408,7 @@ const canKShare=p=>p.alive&&p.team==='K'&&G.phase==='night'&&alive().filter(q=>q
 const canTipNow=p=>p.alive&&p.role==='기자'&&['fog','meet','night'].includes(G.phase)&&!G.tipK[tipKey()];
 const knownMates=p=>p.role==='공범'?G.players.filter(q=>q.role==='범인').map(q=>q.id):p.role==='범인'?G.players.filter(q=>q.role==='공범').map(q=>q.id):[];
 function voidReason(p){if(G.gallows===p.id)return'처형대에 올라 투표권이 없다';if(G.steal&&G.steal.day===G.day&&G.steal.t===p.id&&P(G.steal.pol).alive)return'정치인에게 투표권을 빼앗겼다';return''}
-function startMeet(d){G.day=d;setPhase('meet',MEET);if(G.steal&&G.steal.day===d&&P(G.steal.pol).alive){const t=P(G.steal.t);see(G.steal.pol,{k:'info',text:t.alive?`오늘 ${cn(t.id)}의 투표권을 가져와서 2표를 행사해요.`:`투표권을 가져온 ${josa(cn(t.id),'이','가')} 죽어서 오늘은 1표만 행사해요.`})}G.votes={};G.pubN={};G.gallows=null;G.guessed=false;
+function startMeet(d){G.day=d;setPhase('meet',MEET);G.allAt=0;if(G.steal&&G.steal.day===d&&P(G.steal.pol).alive){const t=P(G.steal.t);see(G.steal.pol,{k:'info',text:t.alive?`오늘 ${cn(t.id)}의 투표권을 가져와서 2표를 행사해요.`:`투표권을 가져온 ${josa(cn(t.id),'이','가')} 죽어서 오늘은 1표만 행사해요.`})}G.votes={};G.pubN={};G.gallows=null;G.guessed=false;
   sysMsg(`${d}낮 공개 회의 (2분). 본 것을 공개하고 투표하자.${d===4?' 오늘 범인은 직업 추리를 한 번 할 수 있다.':''}`);
   alive().forEach(p=>{if(p.ai)botMeet(p)})}
 function tally(){const w={};let ab=0,tot=0;
@@ -453,7 +453,8 @@ function hostAct(pid,a){const p=P(pid);if(!p||!a)return;
     case 'fog':if(G.phase==='fog'&&!G.done[pid])fogSubmit(p,a.v);break;
     case 'night':if(G.phase==='night'&&G.order[G.ti]===pid)nightSubmit(p,a);break;
     case 'kpick':if(G.phase==='night'&&G.order[G.ti]===pid&&p.role==='범인'&&P(a.t)&&P(a.t).alive){G.kpre={by:pid,t:a.t};G.dirty=true}break;
-    case 'vote':if(G.phase==='meet'&&G.votes[pid]===undefined&&!voidReason(p)&&(a.t===-1||(P(a.t)&&P(a.t).alive))){G.votes[pid]=a.t;ml(p,a.t===-1?'투표: 미선택':`투표: ${cn(a.t)}`);G.dirty=true}break;
+    case 'vote':if(G.phase==='meet'&&!voidReason(p)&&(a.t===-1||(P(a.t)&&P(a.t).alive))&&G.votes[pid]!==a.t){const ch=G.votes[pid]!==undefined;G.votes[pid]=a.t;ml(p,(ch?'투표 변경: ':'투표: ')+(a.t===-1?'미선택':cn(a.t)));G.dirty=true}break;
+    case 'unvote':if(G.phase==='meet'&&G.votes[pid]!==undefined){delete G.votes[pid];ml(p,'투표 취소');G.dirty=true}break;
     case 'pub':{if(G.phase!=='meet'||(G.pubN[pid]||0)>=1)break;const it=p.feed.find(x=>x.id===a.fid);if(!it||!pubable(p,it))break;doPub(p,it,false);break}
     case 'kshare':{if(!canKShare(p))break;const it=p.feed.find(x=>x.id===a.fid);if(!it||it.k==='info')break;const key='K'+pid+':'+a.fid;if(G.pubd.has(key))break;G.pubd.add(key);(G.ksUsed=G.ksUsed||{})['n'+G.day]=1;G.board.push({day:G.day,ph:'밤',kind:'kshare',to:'K',by:pid,text:'[범인끼리] '+cn(pid)+' 공유: '+it.text});H(`범인 ${cn(pid)} 범인끼리 공유: ${it.text}`);G.dirty=true;break}
     case 'tip':{if(!canTipNow(p))break;const it=p.feed.find(x=>x.id===a.fid);if(!it||it.who===pid)break;
@@ -526,7 +527,7 @@ function tick(){if(!G)return;const now=NOW();
     case 'pause':if(now>=G.deadline){const f=G.next;G.next=null;f&&f()}break;
     case 'fog':if(now>=G.deadline||alive().every(p=>G.done[p.id]))endFog();break;
     case 'night':if(now>=G.deadline)nightTimeout();break;
-    case 'meet':if(now>=G.deadline||alive().every(p=>G.votes[p.id]!==undefined||voidReason(p)))endMeet();break}
+    case 'meet':{const all=alive().every(p=>G.votes[p.id]!==undefined||voidReason(p));if(all&&!G.allAt){G.allAt=now;G.deadline=Math.min(G.deadline,now+6000);G.dirty=true}else if(!all&&G.allAt){G.allAt=0}if(now>=G.deadline)endMeet();break}}
   if(G.dirty){G.dirty=false;pushViews()}}
 
 function promptFor(p){if(!p.alive)return null;
@@ -535,7 +536,7 @@ function promptFor(p){if(!p.alive)return null;
     case 'intro':return p.id===G.centerBy&&!G.centerM?{k:'center',ms:centerOpts()}:{k:'wait'};
     case 'fog':return{k:'fog',kind:G.day===1?'trace':'claim',opts:fogOpts(p),def:fogDef(p),done:!!G.done[p.id],tip};
     case 'night':return G.order[G.ti]===p.id?Object.assign({k:'night',watch:G.day===4?alive().filter(q=>q.id!==p.id).map(q=>q.id):null,role:p.role,blocked:p.blockNight===G.day,sold:p.role==='군인'?{t:p.lastT,n:p.hist}:null},nightSpec(p)):{k:'wait'};
-    case 'meet':return{k:'meet',voted:G.votes[p.id],vd:voidReason(p),pubLeft:1-(G.pubN[p.id]||0),pubDone:(G.pubN[p.id]||0)>0,guess:G.day===4&&p.role==='범인'&&!G.guessed,cands:alive().map(q=>q.id),gc:alive().filter(q=>q.id!==p.id&&!knownMates(p).includes(q.id)).map(q=>q.id),tip};
+    case 'meet':return{k:'meet',voted:G.votes[p.id],vd:voidReason(p),pubLeft:1-(G.pubN[p.id]||0),live:(()=>{const w={};let ab=0,n=0,tot=0;for(const q of alive()){if(voidReason(q))continue;tot++;const v=G.votes[q.id];if(v===undefined)continue;n++;if(v===-1)ab++;else w[v]=(w[v]||0)+1}return{w,ab,n,tot,endIn:G.allAt?Math.max(0,Math.ceil((G.deadline-NOW())/1000)):0}})(),pubDone:(G.pubN[p.id]||0)>0,guess:G.day===4&&p.role==='범인'&&!G.guessed,cands:alive().map(q=>q.id),gc:alive().filter(q=>q.id!==p.id&&!knownMates(p).includes(q.id)).map(q=>q.id),tip};
   }return null}
 function viewFor(pid){const p=P(pid),now=NOW();
   const v={ph:G.phase,code:G.code,cap:G.cap,solo:G.solo,day:G.day,left:Math.max(0,G.deadline-now),me:pid,banner:G.banner||'',started:G.started,
@@ -705,8 +706,9 @@ function renderAct(){const a=$('#act'),pr=V.pr;let h='';
     h+=`<div class="row"><button class="pri" data-x="go" ${ready?'':'disabled'}>결정</button>${pr.none||(pr.corpses&&!pr.corpses.length)?'<button data-x="none">선택 안함</button>':''}</div>`}
   else if(pr.k==='meet'){h=`<h3>공개 회의 · 투표</h3>`;
     if(pr.vd)h+=`<p style="color:var(--red)">${esc(pr.vd)}</p>`;
-    else if(pr.voted!==undefined&&pr.voted!==null)h+=`<p>투표 완료: ${pr.voted===-1?'미선택':chip(pr.voted)}</p>`;
-    else h+=`<p class="hint">처형할 사람을 고르세요. 미선택이 과반이면 아무도 처형되지 않습니다.</p><div class="tgs">${pr.cands.map(i=>tgBtn(i,S.t===i)).join('')}<button class="tg ${S.t===-1?'on':''}" data-x="t" data-v="-1" style="--c:#777">미선택</button></div><button class="pri" data-x="vote" ${S.t==null?'disabled':''}>투표하기</button>`;
+    else{if(pr.voted!==undefined&&pr.voted!==null)h+=`<p style="font-weight:700">내 투표: ${pr.voted===-1?'미선택':chip(pr.voted)} <button data-x="unvote" style="min-height:32px;padding:2px 10px;font-size:13px;margin-left:6px">투표 취소</button></p><p class="hint">다른 사람을 고르고 투표하기를 누르면 바뀌어요.</p>`;
+    h+=`<p class="hint">처형할 사람을 고르세요. 미선택이 과반이거나 동률이면 아무도 처형되지 않습니다.</p><div class="tgs">${pr.cands.map(i=>tgBtn(i,S.t===i)).join('')}<button class="tg ${S.t===-1?'on':''}" data-x="t" data-v="-1" style="--c:#777">미선택</button></div><button class="pri" data-x="vote" ${S.t==null?'disabled':''}>${pr.voted!==undefined&&pr.voted!==null?'투표 바꾸기':'투표하기'}</button>`}
+    if(pr.live){const L=pr.live;h+=`<div class="rref" style="margin-top:10px"><p style="color:var(--gold);font-weight:700">실시간 투표 (${L.n}/${L.tot}명 투표)${L.endIn?` · 모두 투표! ${L.endIn}초 뒤 마감`:''}</p>${Object.keys(L.w).length?Object.keys(L.w).sort((a,b)=>L.w[b]-L.w[a]).map(i=>`<div class="row" style="gap:6px;margin:3px 0">${chip(+i)}<div style="flex:1;height:10px;background:#0006;border-radius:6px"><div style="height:100%;width:${Math.round(L.w[i]/Math.max(1,L.tot)*100)}%;background:var(--red);border-radius:6px"></div></div><b>${L.w[i]}표</b></div>`).join(''):'<p class="empty">아직 표가 없어요</p>'}${L.ab?`<p class="hint">미선택 ${L.ab}</p>`:''}</div>`}
     h+=pr.pubDone?`<p class="hint sec">오늘 공개 완료</p>`:`<p class="sec" style="color:var(--gold)">오늘 딱 하나 꼭 공개해야 해요! "내가 본 것"에서 공개 버튼을 누르세요. 안 하면 회의가 끝날 때 랜덤으로 공개돼요.</p>`;
     if(pr.guess)h+=`<div class="sec"><p class="lbl">범인의 직업 추리 (1회): 맞히면 그 사람은 처형대에 오릅니다</p><div class="tgs">${pr.gc.map(i=>tgBtn(i,S.gt===i,'gt')).join('')}</div><div class="row">${JOBS.filter(j=>j!=='범인').map(j=>`<button data-x="gj" data-v="${j}" class="${S.gj===j?'on':''}">${j}</button>`).join('')}</div><button class="pri sec" data-x="guess" ${S.gt!=null&&S.gj?'':'disabled'}>추리하기</button></div>`;
     if(pr.tip)h+='<p class="hint">기자: 이번 낮 제보 1회 가능 (밤에도 1회)</p>'}
@@ -746,6 +748,7 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-x]');if(!
     case 'none':send({a:'night',none:true,w:S.w});return;
     case 'w':S.w=n;break;
     case 'vote':if(S.t!=null)send({a:'vote',t:S.t});return;
+    case 'unvote':send({a:'unvote'});return;
     case 'guess':send({a:'guess',t:S.gt,job:S.gj});return;
     default:return}
   render()});
