@@ -55,7 +55,7 @@ h1,h2,h3{font-family:"Black Han Sans",sans-serif;font-weight:400;margin:0;line-h
  #game[data-tab=act] #act,#game[data-tab=me] #mecard{display:block!important}#game[data-tab=log] #logs{display:grid!important;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) minmax(0,1fr)}
  .card{padding:12px}.top h2{font-size:20px}.top{gap:8px}}
 .it .chip{font-size:13px;padding:0 5px}
-.boardbox{position:relative;width:min(100cqw,100cqh);height:min(100cqw,100cqh);border-radius:50%;background:radial-gradient(circle,#2c2238 0%,#18131f 70%);box-shadow:0 0 0 2px #2d2539,0 30px 60px #0008}
+.boardbox{position:relative;width:min(90cqw,90cqh,460px);height:min(90cqw,90cqh,460px);border-radius:50%;background:radial-gradient(circle,#2c2238 0%,#18131f 70%);box-shadow:0 0 0 2px #2d2539,0 30px 60px #0008}
 .boardbox svg{position:absolute;inset:0;width:100%;height:100%}
 .fog{position:absolute;inset:-4%;border-radius:50%;pointer-events:none;opacity:0;transition:opacity 1.2s;background:radial-gradient(circle at 30% 40%,#cfc6dd55,transparent 40%),radial-gradient(circle at 70% 60%,#cfc6dd44,transparent 45%),radial-gradient(circle at 50% 85%,#cfc6dd33,transparent 40%);background-size:200% 200%;animation:drift 14s linear infinite;filter:blur(8px)}
 .fog.on{opacity:1}.night .boardbox{background:radial-gradient(circle,#1d1830 0%,#0b0910 70%)}
@@ -64,8 +64,8 @@ h1,h2,h3{font-family:"Black Han Sans",sans-serif;font-weight:400;margin:0;line-h
 #banner{display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;width:min(92%,420px);text-align:center;background:#000d;border:1px solid var(--red);border-radius:14px;padding:12px;font-weight:700;white-space:pre-line}
 #act h3{font-size:22px;margin-bottom:8px}
 .hint{color:var(--dim);font-size:14px;margin:4px 0 10px}
-.tgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px;margin:8px 0}
-.tg{border-left:8px solid var(--c);text-align:left;padding:6px 10px;line-height:1.2}
+.tgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:5px;margin:6px 0}
+.tg{border-left:7px solid var(--c);text-align:left;padding:4px 8px;line-height:1.15;min-height:40px;font-size:15px}.metog{background:none;border:none;padding:0;min-height:32px;font-size:13px;color:var(--dim);font-weight:700}#act h3{font-size:20px!important}#act .hint{font-size:13px;margin:2px 0 6px}
 .tg small{display:block;color:var(--dim);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chip{display:inline-block;padding:0 7px;border-radius:6px;background:var(--c);color:#111;font-weight:700;font-size:14px;line-height:1.5}
 .list{max-height:330px;overflow-y:auto;display:flex;flex-direction:column;gap:6px}
@@ -566,7 +566,7 @@ const tgBtn=(i,on,x)=>`<button class="tg ${on?'on':''}" data-x="${x||'t'}" data-
 function openHist(){if(!V||!V.end)return;const g=[];for(const x of V.end.hist){let b=g[g.length-1];if(!b||b.lb!==x.lb){b={lb:x.lb,a:[]};g.push(b)}b.a.push(x.t)}
   $('#histBody').innerHTML=g.map(b=>`<h3 style="font-size:20px;margin:14px 0 6px;color:${b.lb.includes('밤')?'#9d8cff':'var(--gold)'}">${esc(b.lb)}</h3>`+b.a.map(t=>`<div class="it" style="margin-bottom:4px${t.includes('거짓말')?';border-left:4px solid var(--red)':''}"><span class="tx">${colz(t)}</span></div>`).join('')).join('');
   $('#histMod').style.display='flex';$('#histMod').scrollTop=0}
-let DOPEN=false;
+let DOPEN=false,MEOPEN=true;try{MEOPEN=localStorage.getItem('bm-meopen')!=='0'}catch(e){}
 const TRT='<table><tr><th>살인 방법</th><th>흔적</th></tr><tr><td>목 조르기</td><td>저항흔적</td></tr><tr><td>둔기</td><td>피</td></tr><tr><td>칼</td><td>피</td></tr><tr><td>독</td><td>주사기</td></tr><tr><td>총</td><td>화약가루</td></tr></table>';
 const REF={
 탐정:'<table><tr><th>보이는 느낌</th><th>해당 직업</th></tr><tr><td>범인인거같다</td><td>범인 · 군인 · 경찰</td></tr><tr><td>선량해보인다</td><td>의사 · 기자 · 목사</td></tr><tr><td>무서워보인다</td><td>버스기사 · 정치인 · 공범 · 환자</td></tr><tr><td>평범해보인다</td><td>백수</td></tr></table>',
@@ -618,7 +618,7 @@ function nowText(){const pr=V.pr;if(V.ph==='lobby')return V.me===0?'사람이 �
   if(V.ph==='night')return pr&&pr.k==='night'?'내 차례! 능력을 쓸 사람을 골라요':`${V.turn!=null?col(V.turn)[0]:''} 차례예요. 기다려요`;
   if(V.ph==='meet'){if(!pr)return'';const a=[];if(!pr.pubDone)a.push('본 것 하나 공개');if(pr.voted===undefined&&!pr.vd)a.push('투표');return a.length?a.join(' + ')+' 해요':'다른 사람을 기다려요'}return''}
 function renderMe(){const m=$('#mecard');if(!V.started){m.innerHTML=`<h3>참가자 ${V.ps.length}/${V.cap}</h3>`+V.ps.map(q=>`<div class="it">${chip(q.id)}<span class="tx">${esc(q.n)}${q.ai?' · AI':''}${q.id===0?' · 방장':''}</span></div>`).join('');return}
-  const me=V.ps[V.me];m.innerHTML=`<div class="row" style="justify-content:space-between"><p class="lbl" style="margin:0">나의 정체 (나만 보임)</p><button data-x="dtog" style="min-height:34px;padding:2px 12px;font-size:14px">${DOPEN?'접기 ▲':'자세히 보기 ▼'}</button></div><div class="row">${chip(V.me)}<b>${esc(me.n)}</b>${V.alive?'':'<b style="color:var(--red)">사망</b>'}</div>${!V.alive&&V.cause?`<p style="color:#ff6b76;font-weight:700;margin:6px 0">죽은 이유: ${esc(V.cause)}</p>`:''}
+  const me=V.ps[V.me];const head=`<div class="row" style="justify-content:space-between"><button data-x="metog" class="metog">${MEOPEN?'▲':'▼'} 나의 정체 (나만 보임)${MEOPEN?'':' · 눌러서 열기'}</button>${MEOPEN?`<button data-x="dtog" style="min-height:34px;padding:2px 12px;font-size:14px">${DOPEN?'설명 접기':'직업 설명'}</button>`:''}</div>`;if(!MEOPEN){m.innerHTML=head;return}m.innerHTML=head+`<div class="row">${chip(V.me)}<b>${esc(me.n)}</b>${V.alive?'':'<b style="color:var(--red)">사망</b>'}</div>${!V.alive&&V.cause?`<p style="color:#ff6b76;font-weight:700;margin:6px 0">죽은 이유: ${esc(V.cause)}</p>`:''}
    <div class="role">${esc(V.role)}${V.orig!==V.role?` <small style="font-size:16px">(원래 ${esc(V.orig)})</small>`:''}</div><p class="hint">${esc(DESC[V.role]||'')}</p>
    ${V.fake?`<p>가짜 직업: <b>${esc(V.fake)}</b></p>`:''}${V.mates&&V.mates.length?`<p>범인 편: ${V.mates.map(chip).join(' ')}</p>`:''}${V.trace?`<p class="hint">내 몸의 흔적: ${esc(V.trace)}</p>`:''}${DOPEN?`<div class="rref"><p>${esc(RDESC[V.role]||'')}</p>${roleRef()}</div>`:''}`}
 function renderAct(){const a=$('#act'),pr=V.pr;let h='';
@@ -680,6 +680,7 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-x]');if(!
     case 'fog':send({a:'fog',v});return;
     case 'pub':send({a:'pub',fid:n});return;
     case 'who':WHO=n;break;case 'memo':MEMO[WHO]=v;break;case 'memox':delete MEMO[WHO];break;case 'memosave':{const t=($('#memoIn').value||'').trim().slice(0,10);if(t)MEMO[WHO]=t;else delete MEMO[WHO];document.activeElement.blur();break}
+    case 'metog':MEOPEN=!MEOPEN;try{localStorage.setItem('bm-meopen',MEOPEN?'1':'0')}catch(_){}break;
     case 'dtog':DOPEN=!DOPEN;break;case 'whox':if(e.target.closest('#who')&&!e.target.closest('button'))return;WHO=null;break;
     case 'tab':TAB=v;break;
     case 'snd':Snd.toggle();el.textContent=Snd.on?'소리 끄기':'소리 켜기';return;
