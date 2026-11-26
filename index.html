@@ -66,7 +66,7 @@ h1,h2,h3{font-family:"Black Han Sans",sans-serif;font-weight:400;margin:0;line-h
 #act h3{font-size:22px;margin-bottom:8px}
 .hint{color:var(--dim);font-size:14px;margin:4px 0 10px}
 .tgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:5px;margin:6px 0}
-.tg{border-left:7px solid var(--c);text-align:left;padding:4px 8px;line-height:1.15;min-height:40px;font-size:15px}.dl .tg small{white-space:normal}.ftb{flex:1;min-height:34px;padding:2px 8px;font-size:14px;font-weight:700}.ftb.on{background:var(--gold);color:#1a1420;border-color:var(--gold);outline:none}.it.vis{border-left:4px solid #7fd8ff}.ftb{white-space:nowrap;font-size:13px!important;padding:2px 6px!important}.hb{flex:none;min-height:30px;padding:2px 10px;font-size:13px}.hidmsg{display:none;color:var(--dim);font-size:13px;margin:6px 0}.lg.hid .list{display:none!important}.lg.hid .hidmsg{display:block}.lg.hid{flex:none!important}.metog{background:none;border:none;padding:0;min-height:32px;font-size:13px;color:var(--dim);font-weight:700}#act h3{font-size:20px!important}#act .hint{font-size:13px;margin:2px 0 6px}
+.tg{border-left:7px solid var(--c);text-align:left;padding:4px 8px;line-height:1.15;min-height:40px;font-size:15px}.dl .tg small{white-space:normal}.ftb{flex:1;min-height:34px;padding:2px 8px;font-size:14px;font-weight:700}.ftb.on{background:var(--gold);color:#1a1420;border-color:var(--gold);outline:none}.it.vis{border-left:4px solid #7fd8ff}.ftb{white-space:nowrap;font-size:13px!important;padding:2px 6px!important}.xb{flex:none;min-height:26px!important;padding:0 7px!important;font-size:12px!important;opacity:.55;background:none}.xb:hover{opacity:1}.it.hidit{cursor:pointer;font-size:12px;color:var(--dim);padding:3px 10px;background:#1a1622;border:1px dashed var(--line)!important;box-shadow:none;font-weight:400}.hb{flex:none;min-height:30px;padding:2px 10px;font-size:13px}.hidmsg{display:none;color:var(--dim);font-size:13px;margin:6px 0}.lg.hid .list{display:none!important}.lg.hid .hidmsg{display:block}.lg.hid{flex:none!important}.metog{background:none;border:none;padding:0;min-height:32px;font-size:13px;color:var(--dim);font-weight:700}#act h3{font-size:20px!important}#act .hint{font-size:13px;margin:2px 0 6px}
 .tg small{display:block;color:var(--dim);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chip{box-shadow:0 0 0 1px #ffffff33;display:inline-block;padding:0 7px;border-radius:6px;background:var(--c);color:#111;font-weight:700;font-size:14px;line-height:1.5}
 .list{max-height:330px;overflow-y:auto;display:flex;flex-direction:column;gap:6px}
@@ -138,7 +138,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
     <div class="right">
       <div class="card pane" id="act"></div>
       <div class="tabs"><button data-x="tab" data-v="act">할 일</button><button data-x="tab" data-v="log">게시판 · 본 것</button><button data-x="tab" data-v="me">내 정보</button></div>
-      <div class="pane" id="logs"><div class="card lg" id="cpubs"><div class="row lh" style="justify-content:space-between;flex-wrap:nowrap"><span>공개 게시판</span><button class="hb" data-hide="cpubs">숨기기</button></div><div class="list" id="pubs"></div><p class="hidmsg">숨겨 두었어요 · "보이기"를 누르면 다시 보여요</p></div><div class="card lg" id="cfeed"><div class="row lh" style="gap:6px;flex-wrap:nowrap"><button data-x="ftab" data-v="feed" class="ftb" id="ftb1">내가 본 것</button><button data-x="ftab" data-v="vis" class="ftb" id="ftb2">나에게 온 사람</button><button class="hb" data-hide="cfeed">숨기기</button></div><p class="hidmsg">숨겨 두었어요 · "보이기"를 누르면 다시 보여요</p><div class="list" id="feed"></div></div></div>
+      <div class="pane" id="logs"><div class="card lg" id="cpubs"><div class="row lh" style="justify-content:space-between;flex-wrap:nowrap"><span>공개 게시판</span></div><div class="list" id="pubs"></div><p class="hidmsg">숨겨 두었어요 · "보이기"를 누르면 다시 보여요</p></div><div class="card lg" id="cfeed"><div class="row lh" style="gap:6px;flex-wrap:nowrap"><button data-x="ftab" data-v="feed" class="ftb" id="ftb1">내가 본 것</button><button data-x="ftab" data-v="vis" class="ftb" id="ftb2">나에게 온 사람</button></div><p class="hidmsg">숨겨 두었어요 · "보이기"를 누르면 다시 보여요</p><div class="list" id="feed"></div></div></div>
     </div>
   </div>
 </div>
@@ -177,6 +177,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
 <li><b>4명 게임</b> 군인은 나오지 않아요</li>
 <li><b>4밤</b> 양옆 대신 지켜볼 1명을 골라요 (안 고르면 가장 가까운 왼쪽 사람)</li>
 <li><b>환자 vs 범인</b> 환자가 범인을 막으면 그 밤엔 범인 모두 살인 못 함 · 대신 범인들이 환자가 누군지 알게 돼요</li>
+<li><b>범인 번호</b> 범인이 2명 이상이면 1번·2번… 번호가 있어요. 범인이 군인을 노리면 1번부터 순서대로 반격당해 죽어요</li>
 <li><b>범인끼리 공유</b> 범인이 2명 이상 살아 있으면 한 밤에 범인 전체 1개만 "내가 본 것"을 범인끼리만 보는 게시판에 공유할 수 있어요</li>
 <li><b>가짜 직업</b> 범인의 가짜 직업은 이번 판에 없는 직업이에요</li>
 <li><b>의사 없는 판</b> 환자도 다른 사람처럼 한 번 죽으면 끝 (목사에게 직업이 보이고, 죽은 뒤 모든 직업이 보여요)</li></ul>
@@ -264,10 +265,11 @@ function startGame(){
   fillAI();const N=G.players.length,nk=N>=8?2:(N>=6&&Math.random()<.5?2:1);
   const pool=JOBS.filter(j=>j!=='범인'&&!(nk===2&&j==='백수')&&!(N===4&&j==='군인'));
   const roles=shuffle([...Array(nk).fill('범인'),...shuffle(pool).slice(0,N-nk)]);
-  const fakeUsed=[];G.players.forEach((p,i)=>{Object.assign(p,{role:roles[i],orig:roles[i],alive:true,feed:[],trace:null,claim:null,fake:null,blockNight:-1,usedSurg:false,byKiller:false,cause:null,found:false,polWin:false,hist:0,lastT:null,examined:[],win:false,deaths:0,mylog:[],visits:[]});p.team=teamOf(p.role);if(p.role==='범인'){const ab=JOBS.filter(j=>j!=='범인'&&!roles.includes(j));p.fake=ab.length?rnd(ab):rnd(pool.filter(j=>j!=='백수'));fakeUsed.push(p.fake)}});
+  const fakeUsed=[];G.players.forEach((p,i)=>{Object.assign(p,{role:roles[i],orig:roles[i],alive:true,feed:[],trace:null,claim:null,fake:null,blockNight:-1,usedSurg:false,byKiller:false,cause:null,found:false,polWin:false,hist:0,lastT:null,examined:[],win:false,deaths:0,mylog:[],visits:[],knum:0});p.team=teamOf(p.role);if(p.role==='범인'){const ab=JOBS.filter(j=>j!=='범인'&&!roles.includes(j));p.fake=ab.length?rnd(ab):rnd(pool.filter(j=>j!=='백수'));fakeUsed.push(p.fake)}});
   G.hist=[];G.started=true;G.day=0;G.board=[];G.pubd=new Set();G.dlog=[];G.method=null;G.steal=null;G.foundFlag=false;G.hasDoc=G.players.some(p=>p.role==='의사');G.nq=[];G.vq=null;G.tipQ=[];G.tipK={};G.polLost=false;G.center={};G.centerM=null;
   G.centerBy=G.players.filter(p=>p.role==='범인').sort((a,b)=>a.seat-b.seat)[0].id;
-  G.players.filter(p=>p.team==='K').forEach(p=>see(p.id,{k:'info',text:(nk===2?'범인은 2명이에요. 다른 범인이 누군지는 몰라요. 밤에 고르는 대상은 범인끼리 공유되고, 먼저 "결정"한 범인의 대상이 죽어요.':'당신은 범인이에요.')+(p.fake?` · 내 가짜 직업은 ${p.fake}`:'')}));
+  shuffle(G.players.filter(p=>p.role==='범인')).forEach((p,i)=>{p.knum=nk>=2?i+1:0});
+  G.players.filter(p=>p.team==='K').forEach(p=>see(p.id,{k:'info',text:(p.knum?`당신은 범인 ${p.knum}번이에요. 범인이 군인을 노리면 1번 → 2번 → 3번 순서로 반격당해 죽어요. `:'')+(nk===2?'범인은 2명이에요. 다른 범인이 누군지는 몰라요. 밤에 고르는 대상은 범인끼리 공유되고, 먼저 "결정"한 범인의 대상이 죽어요.':'당신은 범인이에요.')+(p.fake?` · 내 가짜 직업은 ${p.fake}`:'')}));
   setPhase('intro',T_SEC);sysMsg(`이번 게임의 범인은 ${nk}명이에요.`);sysMsg('원 가운데에 한 사람이 있다…');
   const c=P(G.centerBy);if(c.ai)laterBot(c,1500+Math.random()*2500,()=>hostAct(c.id,{a:'center',m:rnd(METHODS)}));
 }
@@ -362,7 +364,7 @@ function resolveNight(){const k=G.day,A=G.acts,dead=[];
   if(ks.length){const best=A[ks[0]].t;
     const ex=ks.find(id=>A[id].t===best),m=A[ex].m,X=P(ex),v=P(sw(best));
     if(v.role==='범인')nk(v,m);
-    else if(v.role==='군인'){nk(X,'총상');res(v.id,'범인이 나를 노렸다! 반격해서 범인을 쓰러뜨렸다.')}
+    else if(v.role==='군인'){const K1=G.players.filter(q=>q.alive&&q.role==='범인').sort((a,b)=>(a.knum||9)-(b.knum||9))[0]||X;nk(K1,'총상');res(v.id,'범인이 나를 노렸다! 반격해서 범인을 쓰러뜨렸다.');H(`군인 반격: 범인 ${K1.knum||''}번 ${cn(K1.id)} 사망`)}
     else if(v.role==='백수'){H(`범인이 백수 ${cn(v.id)}을(를) 노림 → 공범이 됨`);v.role='공범';v.team='K';v.found=false;see(v.id,{k:'info',text:`범인(${G.players.filter(q=>q.role==='범인').map(q=>cn(q.id)).join(', ')})에게 붙잡혀 공범이 되었다. 이제 범인이다.`});G.players.filter(q=>q.role==='범인').forEach(q=>see(q.id,{k:'info',text:`${cn(v.id)}는 백수였다. 공범이 되었다.`}))}
     else{nk(v,m);if(!v.alive)v.byKiller=true;const tr=traceOf(m);X.trace=tr;G.players.filter(q=>q.role==='군인'&&q.alive).forEach(q=>q.trace=tr)}}
   const sol=G.players.find(q=>q.role==='군인'&&A[q.id]);
@@ -526,7 +528,7 @@ function viewFor(pid){const p=P(pid),now=NOW();
     ps:G.players.map(q=>({id:q.id,n:q.name,col:q.col,seat:q.seat,ai:!!q.ai,away:!!q.away,alive:q.alive!==false,r:null})),
     board:G.board.filter(b=>b.to!=='K'||(p&&p.team==='K')).slice(-60).map(b=>({day:b.day,ph:b.ph,kind:b.kind,by:b.by,text:b.text}))};
   if(!G.started)return v;
-  Object.assign(v,{usedSearch:!!p.usedSearch,mylog:p.mylog||[],visits:p.visits||[],method:p.team==='K'?G.method:null,cause:!p.alive?(hidePat(p)?'환자는 죽은 이유가 비밀이에요. 의사가 수술하면 살아날 수 있어요.':causeText(p.cause)):null,role:p.role,orig:p.orig,trace:p.trace,fake:p.fake,alive:p.alive,turn:G.phase==='night'?G.order[G.ti]:null,nb:neighbors(pid),center:G.center,
+  Object.assign(v,{knum:p.role==='범인'?p.knum||0:0,usedSearch:!!p.usedSearch,mylog:p.mylog||[],visits:p.visits||[],method:p.team==='K'?G.method:null,cause:!p.alive?(hidePat(p)?'환자는 죽은 이유가 비밀이에요. 의사가 수술하면 살아날 수 있어요.':causeText(p.cause)):null,role:p.role,orig:p.orig,trace:p.trace,fake:p.fake,alive:p.alive,turn:G.phase==='night'?G.order[G.ti]:null,nb:neighbors(pid),center:G.center,
     mates:knownMates(p),kshare:p.role==='범인'&&G.phase==='night'?{pre:G.kpre&&G.kpre.by!==pid?G.kpre.t:null,dec:G.kdec&&G.kdec.by!==pid?G.kdec.t:null}:null,
     canTip:canTipNow(p),canKS:canKShare(p),feed:p.feed.map(it=>({id:it.id,day:it.day,ph:it.ph,text:it.text,own:it.who===pid,pubd:G.pubd.has(pid+':'+it.id),k:it.k,who:it.k==='pick'?it.who:undefined,tgt:it.k==='pick'?it.tgt:undefined})),pr:promptFor(p)});
   if(!p.alive&&!hidePat(p))v.ps.forEach(x=>{x.rr=P(x.id).role});else if(p.alive&&p.role==='목사')v.ps.forEach(x=>{const q=P(x.id);if(!q.alive&&!hidePat(q))x.rr=q.role});v.patWait=!p.alive&&hidePat(p);
@@ -606,13 +608,14 @@ function roleRef(){const r=REF[V.role];return(typeof r==='function'?r():(r||''))
 let wasAlive=null;
 const DRX=/\[?(\d+)(낮|밤)( 결과)?\]?\s*/;
 function sd(text,day,ph){const m=String(text).match(DRX);if(!m)return[day!=null&&day!==''?day+(ph||'낮'):'',text];let t=String(text).replace(DRX,'').replace(/^\s*[:·]\s*/,'').replace(/·\s*:\s*/,'· ').replace(/^\(안개\):\s*/,'안개 · ');return[m[1]+m[2],t]}
-let MEMO={},FTAB='feed';
+let MEMO={},FTAB='feed',HID=new Set();
+const hkey=t=>{let h=0;for(const c of String(t))h=(h*31+c.charCodeAt(0))|0;return 'b'+h};
 function applyHide(){['cpubs','cfeed'].forEach(id=>{let h=false;try{h=localStorage.getItem('bm-hide-'+id)==='1'}catch(e){}const c=document.getElementById(id);c.classList.toggle('hid',h);c.querySelector('.hb').textContent=h?'보이기':'숨기기'})}
-document.addEventListener('click',e=>{const b=e.target.closest('[data-hide]');if(!b)return;const id=b.dataset.hide;const c=document.getElementById(id);const h=!c.classList.contains('hid');try{localStorage.setItem('bm-hide-'+id,h?'1':'0')}catch(_){}applyHide()});
-setTimeout(applyHide,0);
+document.addEventListener('click',e=>{const hx=e.target.closest('[data-hx]');if(hx){const k=hx.dataset.hx;HID.has(k)?HID.delete(k):HID.add(k);render();return}const b=e.target.closest('[data-hide]');if(!b)return;const id=b.dataset.hide;const c=document.getElementById(id);const h=!c.classList.contains('hid');try{localStorage.setItem('bm-hide-'+id,h?'1':'0')}catch(_){}applyHide()});
+
 document.addEventListener('input',e=>{if(e.target.id==='memoIn'&&WHO!=null&&V){const t=e.target.value.trim().slice(0,10);if(t)MEMO[WHO]=t;else delete MEMO[WHO];drawBoard()}});
 document.addEventListener('keydown',e=>{if(e.target.id==='memoIn'&&e.key==='Enter'){e.target.blur();WHO=null;render()}});
-function showView(v){if(!v.started)MEMO={};const died=v.started&&wasAlive===true&&v.alive===false;wasAlive=v.started?v.alive:null;V=v;recvAt=Date.now();if(died){TAB='act';$('#dmsg').textContent=v.cause||'';$('#deadMod').style.display='flex'}render()}
+function showView(v){if(!v.started){MEMO={};HID=new Set()}const died=v.started&&wasAlive===true&&v.alive===false;wasAlive=v.started?v.alive:null;V=v;recvAt=Date.now();if(died){TAB='act';$('#dmsg').textContent=v.cause||'';$('#deadMod').style.display='flex'}render()}
 function phaseName(){const d=V.day;return{lobby:'대기실',intro:'원 가운데에 한 사람이 있다…',fog:`${d}낮 · 안개`,night:`${d}밤`,meet:`${d}낮 · 공개 회의`,pause:'',end:'게임 종료'}[V.ph]||''}
 function drawBoard(){const N=V.started?V.ps.length:V.cap,cx=200,cy=200,R=140;let h='';
   const fogDay=V.started&&(V.ph==='fog'||V.ph==='night'||(V.ph==='pause'&&V.day<=2)||V.ph==='intro');
@@ -638,10 +641,10 @@ function render(){if(!V)return;const pr=V.pr;const key=[V.ph,V.day,V.turn,pr&&pr
   const nw=nowText();$('#now').style.display=nw?'block':'none';$('#now').textContent=nw?'지금 할 일 · '+nw:'';
   $('#game').dataset.tab=TAB;$('#game').dataset.ph=V.ph;const wide=matchMedia('(min-width:861px)').matches;document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('sel',b.dataset.v===TAB));
   drawBoard();renderAct();renderMe();renderWho();Snd.mood(V.ph==='night');
-  const pinF=x=>(x.kind==='death'||x.kind==='tip')&&x.day>=V.day-1;const BO=V.board.filter(pinF).reverse().concat(V.board.filter(x=>!pinF(x)).reverse());$('#pubs').innerHTML=V.board.length?BO.map(x=>`<div class="it ${x.kind==='sys'?'sys':x.kind==='tip'?'tip':x.kind==='death'?'death':x.kind==='kshare'?'kshare':''}">${(()=>{const[l,t]=sd(x.text,x.day||'',x.ph);return`<span class="d">${l}</span><span class="tx">${x.kind==='pub'?`<span data-x="who" data-v="${x.by}" style="cursor:pointer">${chip(x.by)}</span> 공개: `:''}${colz(t)}`})()}</span></div>`).join(''):'<p class="empty">아직 아무것도 없습니다.</p>';
+  const pinF=x=>(x.kind==='death'||x.kind==='tip')&&x.day>=V.day-1;const BO=V.board.filter(pinF).reverse().concat(V.board.filter(x=>!pinF(x)).reverse());$('#pubs').innerHTML=V.board.length?BO.map(x=>{const hk=hkey(x.day+(x.ph||'')+x.kind+x.text);if(HID.has(hk))return`<div class="it hidit" data-hx="${hk}">숨긴 메시지 · 눌러서 보기</div>`;return`<div class="it ${x.kind==='sys'?'sys':x.kind==='tip'?'tip':x.kind==='death'?'death':x.kind==='kshare'?'kshare':''}">${(()=>{const[l,t]=sd(x.text,x.day||'',x.ph);return`<span class="d">${l}</span><span class="tx">${x.kind==='pub'?`<span data-x="who" data-v="${x.by}" style="cursor:pointer">${chip(x.by)}</span> 공개: `:''}${colz(t)}`})()}</span><button class="xb" data-hx="${hk}" title="숨기기">숨김</button></div>`}).join(''):'<p class="empty">아직 아무것도 없습니다.</p>';
   const f=V.feed||[],canPub=pr&&pr.k==='meet'&&pr.pubLeft>0,canTip=V.canTip;
   $('#ftb1').classList.toggle('on',FTAB!=='vis');$('#ftb2').classList.toggle('on',FTAB==='vis');if(FTAB==='vis'){const vs=V.visits||[];$('#feed').innerHTML=!V.started?'':vs.length?vs.slice().reverse().map(x=>`<div class="it ${x.from.length?'vis':''}"><span class="d">${x.day}밤</span><span class="tx">${x.from.length?x.from.map(chip).join(' ')+' 이(가) 나에게 왔다':'아무도 오지 않았다'}</span></div>`).join(''):'<p class="empty">밤이 지나면 그 밤에 나에게 온 사람이 여기에 나와요.</p>'}else
-  $('#feed').innerHTML=f.length?f.slice().reverse().map(it=>`<div class="it">${(()=>{const[l,t]=sd(it.text,it.day,it.ph);return`<span class="d">${l}</span><span class="tx">${colz(t)}</span>`})()}${!it.own&&!it.pubd&&canPub&&it.k!=='info'?`<button data-x="pub" data-v="${it.id}">공개</button>`:''}${!it.own&&!it.pubd&&canTip&&it.k!=='info'?`<button data-x="tip" data-v="${it.id}">제보</button>`:''}${V.canKS&&it.k!=='info'?`<button data-x="kshare" data-v="${it.id}" style="border-color:var(--red)">범인 공유</button>`:''}${it.pubd?'<span class="d">공개됨</span>':''}</div>`).join(''):'<p class="empty">아직 본 것이 없습니다.</p>';
+  $('#feed').innerHTML=f.length?f.slice().reverse().map(it=>HID.has('f'+it.id)?`<div class="it hidit" data-hx="f${it.id}">숨긴 메시지 · 눌러서 보기</div>`:`<div class="it">${(()=>{const[l,t]=sd(it.text,it.day,it.ph);return`<span class="d">${l}</span><span class="tx">${colz(t)}</span>`})()}${!it.own&&!it.pubd&&canPub&&it.k!=='info'?`<button data-x="pub" data-v="${it.id}">공개</button>`:''}${!it.own&&!it.pubd&&canTip&&it.k!=='info'?`<button data-x="tip" data-v="${it.id}">제보</button>`:''}${V.canKS&&it.k!=='info'?`<button data-x="kshare" data-v="${it.id}" style="border-color:var(--red)">범인 공유</button>`:''}${it.pubd?'<span class="d">공개됨</span>':''}<button class="xb" data-hx="f${it.id}" title="숨기기">숨김</button></div>`).join(''):'<p class="empty">아직 본 것이 없습니다.</p>';
   tickTimer()}
 function nowText(){const pr=V.pr;if(V.ph==='lobby')return V.me===0?'사람이 모이면 게임 시작을 눌러요':'방장이 시작하기를 기다려요';
   if(V.ph==='end'||V.ph==='pause')return'';if(V.started&&!V.alive)return'죽었어요. 끝까지 지켜봐요';
@@ -651,7 +654,7 @@ function nowText(){const pr=V.pr;if(V.ph==='lobby')return V.me===0?'사람이 �
   if(V.ph==='meet'){if(!pr)return'';const a=[];if(!pr.pubDone)a.push('본 것 하나 공개');if(pr.voted===undefined&&!pr.vd)a.push('투표');return a.length?a.join(' + ')+' 해요':'다른 사람을 기다려요'}return''}
 function renderMe(){const m=$('#mecard');if(!V.started){m.innerHTML=`<h3>참가자 ${V.ps.length}/${V.cap}</h3>`+V.ps.map(q=>`<div class="it">${chip(q.id)}<span class="tx">${esc(q.n)}${q.ai?' · AI':''}${q.id===0?' · 방장':''}</span></div>`).join('');return}
   const me=V.ps[V.me];const head=`<div class="row" style="justify-content:space-between"><button data-x="metog" class="metog">${MEOPEN?'▲':'▼'} 나의 정체 (나만 보임)${MEOPEN?'':' · 눌러서 열기'}</button>${MEOPEN?`<span class="row" style="gap:6px"><button data-x="ltog" style="min-height:34px;padding:2px 12px;font-size:14px">${LOPEN?'기록 접기':'내 기록'}</button><button data-x="dtog" style="min-height:34px;padding:2px 12px;font-size:14px">${DOPEN?'설명 접기':'직업 설명'}</button></span>`:''}</div>`;if(!MEOPEN){m.innerHTML=head;return}m.innerHTML=head+`<div class="row">${chip(V.me)}<b>${esc(me.n)}</b>${V.alive?'':'<b style="color:var(--red)">사망</b>'}</div>${!V.alive&&V.cause?`<p style="color:#ff6b76;font-weight:700;margin:6px 0">죽은 이유: ${esc(V.cause)}</p>`:''}
-   <div class="role">${esc(V.role)}${V.orig!==V.role?` <small style="font-size:16px">(원래 ${esc(V.orig)})</small>`:''}</div><p class="hint">${esc(DESC[V.role]||'')}</p>
+   <div class="role">${esc(V.role)}${V.knum?` ${V.knum}번`:''}${V.orig!==V.role?` <small style="font-size:16px">(원래 ${esc(V.orig)})</small>`:''}</div><p class="hint">${esc(DESC[V.role]||'')}</p>
    ${V.fake?`<p>가짜 직업: <b>${esc(V.fake)}</b></p>`:''}${V.mates&&V.mates.length?`<p>범인: ${V.mates.map(chip).join(' ')}</p>`:''}${V.trace?`<p class="hint">내 몸의 흔적: ${esc(V.trace)}</p>`:''}${LOPEN?`<div class="rref"><p style="color:var(--gold);font-weight:700">내 기록</p>${(V.mylog||[]).length?V.mylog.slice().reverse().map(x=>`<div class="it" style="margin:3px 0"><span class="d">${x.day?x.day+x.ph:'시작'}</span><span class="tx">${colz(x.text)}</span></div>`).join(''):'<p class="empty">아직 한 일이 없어요.</p>'}</div>`:''}${DOPEN?`<div class="rref"><p>${esc(RDESC[V.role]||'')}</p>${roleRef()}</div>`:''}`}
 function renderAct(){const a=$('#act'),pr=V.pr;let h='';
   if(V.ph==='lobby'){const host=V.me===0;
