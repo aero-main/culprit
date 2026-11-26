@@ -77,7 +77,7 @@ h1,h2,h3{font-family:"Black Han Sans",sans-serif;font-weight:400;margin:0;line-h
 .sec{margin-top:14px}
 .mod{position:fixed;inset:0;background:#000c;display:none;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;z-index:9}
 .mod .card{max-width:680px;width:100%}
-.mod li{margin:4px 0}.rref{background:var(--pan2);border-radius:10px;padding:8px 12px;margin-top:8px;font-size:14px}.rref p{margin:4px 0}.rref table{font-size:14px}.rh{font-size:19px;color:var(--gold);margin:16px 0 4px}.rp table{margin:6px 0}.sum{padding-left:20px;font-size:17px}.sum li{margin:6px 0}.roles{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:6px}.roles li{background:var(--pan2);border-radius:10px;padding:8px 10px;margin:0;font-size:15px}.roles b{display:block;color:var(--gold)}
+.mod li{margin:4px 0}.memo{background:#0f2430;border:1px solid #2b5870;border-radius:12px;padding:10px;margin:10px 0}.mb{min-height:34px;padding:2px 10px;font-size:14px}.memo input{flex:1;min-height:38px}.rref{background:var(--pan2);border-radius:10px;padding:8px 12px;margin-top:8px;font-size:14px}.rref p{margin:4px 0}.rref table{font-size:14px}.rh{font-size:19px;color:var(--gold);margin:16px 0 4px}.rp table{margin:6px 0}.sum{padding-left:20px;font-size:17px}.sum li{margin:6px 0}.roles{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:6px}.roles li{background:var(--pan2);border-radius:10px;padding:8px 10px;margin:0;font-size:15px}.roles b{display:block;color:var(--gold)}
 #now{background:#f2c14e;color:#1a1420;font-weight:700;border-radius:10px;padding:8px 12px;margin-bottom:10px;display:none}
 table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px solid var(--line);text-align:left}
 .empty{color:var(--dim);font-size:14px}
@@ -153,7 +153,8 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
 <li>나 자신에게도 투표할 수 있어요. 누가 누구를 찍었는지는 공개되지 않고 표 수만 나와요.</li></ul>
 <h3 class="rh">죽으면</h3>
 <ul><li>내가 왜 죽었는지와 모든 사람의 직업이 보여요. 환자는 두 번째로 죽었을 때부터 보여요.</li>
-<li>살아 있는 사람에게는 죽은 사람의 직업과 사인이 공개되지 않아요. 게임이 끝나면 "게임 기록"에서 모두 볼 수 있어요.</li></ul>
+<li>죽은 사람의 진짜 직업은 모두에게 공개돼요 (환자는 두 번째로 죽었을 때부터). 사인은 공개되지 않아요. 게임이 끝나면 "게임 기록"에서 모두 볼 수 있어요.</li>
+<li>원탁의 사람을 누르면 그 사람에 대한 내 메모(범인·시민·정치인·직업·직접 쓰기)를 남길 수 있어요. 나만 보여요.</li></ul>
 </div>
 <div class="rp" data-p="2" style="display:none">
 <h3 class="rh">살인 방법과 흔적</h3>
@@ -290,7 +291,7 @@ function nightTimeout(){const p=P(G.order[G.ti]);const sp=nightSpec(p);
   else nightSubmit(p,{t:rnd(sp.targets)})}
 function traceOf(m){return m==='교살'?'저항흔적':(m==='타살'||m==='칼')?'피':m==='독'?'주사기':'화약가루'}
 const hidePat=p=>p.role==='환자'&&(p.deaths||0)<2;
-const shownRole=i=>'';
+const shownRole=i=>hidePat(P(i))?'':P(i).role;
 const nmR=(i,a,b)=>{const r=shownRole(i),w=r||cn(i);return cn(i)+(r?`(${r})`:'')+josa(w,a,b).slice(w.length)};
 const causeText=c=>{if(!c)return null;if(c==='처형')return'투표로 처형됐어요.';if(c==='총상')return'군인의 총에 맞아 죽었어요.';return MD[c]?`범인에게 당했어요: ${MD[c]}.`:c};
 const ro=w=>{const k=w.charCodeAt(w.length-1),j=(k-0xAC00)%28;return w+(j===0||j===8?'로':'으로')};
@@ -467,7 +468,7 @@ function promptFor(p){if(!p.alive)return null;
   }return null}
 function viewFor(pid){const p=P(pid),now=NOW();
   const v={ph:G.phase,code:G.code,cap:G.cap,solo:G.solo,day:G.day,left:Math.max(0,G.deadline-now),me:pid,banner:G.banner||'',started:G.started,
-    ps:G.players.map(q=>({id:q.id,n:q.name,col:q.col,seat:q.seat,ai:!!q.ai,away:!!q.away,alive:q.alive!==false,r:null})),
+    ps:G.players.map(q=>({id:q.id,n:q.name,col:q.col,seat:q.seat,ai:!!q.ai,away:!!q.away,alive:q.alive!==false,r:G.started&&q.alive===false&&!hidePat(q)?q.role:null})),
     board:G.board.slice(-60).map(b=>({day:b.day,ph:b.ph,kind:b.kind,by:b.by,text:b.text}))};
   if(!G.started)return v;
   Object.assign(v,{method:p.team==='K'?G.method:null,cause:!p.alive?(hidePat(p)?'환자는 죽은 이유가 비밀이에요. 의사가 수술하면 살아날 수 있어요.':causeText(p.cause)):null,role:p.role,orig:p.orig,trace:p.trace,fake:p.fake,alive:p.alive,turn:G.phase==='night'?G.order[G.ti]:null,nb:neighbors(pid),center:G.center,
@@ -548,7 +549,8 @@ const REF={
 공범:'<p>범인 편이에요. 밤 선택은 위장용이에요.</p>'};
 function roleRef(){const r=REF[V.role];return(typeof r==='function'?r():(r||''))}
 let wasAlive=null;
-function showView(v){const died=v.started&&wasAlive===true&&v.alive===false;wasAlive=v.started?v.alive:null;V=v;recvAt=Date.now();if(died){TAB='act';$('#dmsg').textContent=v.cause||'';$('#deadMod').style.display='flex'}render()}
+let MEMO={};
+function showView(v){if(!v.started)MEMO={};const died=v.started&&wasAlive===true&&v.alive===false;wasAlive=v.started?v.alive:null;V=v;recvAt=Date.now();if(died){TAB='act';$('#dmsg').textContent=v.cause||'';$('#deadMod').style.display='flex'}render()}
 function phaseName(){const d=V.day;return{lobby:'대기실',intro:'원 가운데에 한 사람이 있다…',fog:`${d}일낮 · 안개`,night:`${d}일밤`,meet:`${d}일낮 · 공개 회의`,pause:'',end:'게임 종료'}[V.ph]||''}
 function drawBoard(){const N=V.started?V.ps.length:V.cap,cx=200,cy=200,R=148;let h='';
   const fogDay=V.started&&(V.ph==='fog'||V.ph==='night'||(V.ph==='pause'&&V.day<=2)||V.ph==='intro');
@@ -561,7 +563,7 @@ function drawBoard(){const N=V.started?V.ps.length:V.cap,cx=200,cy=200,R=148;let
     if(nb)h+=`<circle r="36" fill="none" stroke="#efe9f6" stroke-width="2" stroke-dasharray="5 4"/>`;
     h+=`<ellipse cy="26" rx="24" ry="6" fill="#0007"/><rect x="-21" y="-2" width="42" height="28" rx="14" fill="${c}"/><rect x="-21" y="-2" width="42" height="10" rx="5" fill="#fff2"/><circle cy="-14" r="14" fill="${c}" stroke="${me?'#fff':'#0005'}" stroke-width="${me?3:1.5}"/><circle cx="-4" cy="-18" r="4" fill="#fff4"/>`;
     if(!q.alive)h+=`<path d="M-16 -28 L16 4 M16 -28 L-16 4" stroke="#e0313f" stroke-width="5" stroke-linecap="round"/>`;
-    h+=`<text y="44" text-anchor="middle" font-size="14" font-weight="700" fill="#efe9f6">${esc(q.n)}${me?' (나)':''}</text>`+(q.rr&&!q.r?`<text y="62" text-anchor="middle" font-size="15" font-weight="900" fill="#f2c14e">${esc(q.rr)}</text>`:'')+(q.r?`<text y="62" text-anchor="middle" font-size="15" font-weight="900" fill="#ff6b76">${esc(q.r)}</text>`:'')+`</g>`}
+    h+=`<text y="44" text-anchor="middle" font-size="14" font-weight="700" fill="#efe9f6">${esc(q.n)}${me?' (나)':''}</text>`+(!q.rr&&!q.r&&MEMO[q.id]?`<text y="62" text-anchor="middle" font-size="14" font-weight="700" fill="#7fd8ff">${esc(MEMO[q.id])}?</text>`:'')+(q.rr&&!q.r?`<text y="62" text-anchor="middle" font-size="15" font-weight="900" fill="#f2c14e">${esc(q.rr)}</text>`:'')+(q.r?`<text y="62" text-anchor="middle" font-size="15" font-weight="900" fill="#ff6b76">${esc(q.r)}</text>`:'')+`</g>`}
   $('#board').innerHTML=h;$('#fog').classList.toggle('on',fogDay);document.body.classList.toggle('night',V.ph==='night')}
 function render(){if(!V)return;const pr=V.pr;const key=[V.ph,V.day,V.turn,pr&&pr.k].join('|');if(key!==S.key&&pr&&(pr.k==='center'||(pr.k==='fog'&&!pr.done)||pr.k==='night'||pr.k==='meet'))TAB='act';if(key!==S.key&&(V.ph==='lobby'||V.ph==='end'))TAB='act';if(key!==S.key)S={key,t:null,t2:null,m:null,mode:'heal',gt:null,gj:null,ft:null};
   $('#phase').textContent=phaseName()+(V.code&&V.ph==='lobby'?` · 방 코드 ${V.code}`:'');
@@ -641,7 +643,8 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-x]');if(!
     case 'center':send({a:'center',m:v});return;
     case 'fog':send({a:'fog',v});return;
     case 'pub':send({a:'pub',fid:n});return;
-    case 'who':WHO=n;break;case 'dtog':DOPEN=!DOPEN;break;case 'whox':if(e.target.closest('#who')&&!e.target.closest('button'))return;WHO=null;break;
+    case 'who':WHO=n;break;case 'memo':MEMO[WHO]=v;break;case 'memox':delete MEMO[WHO];break;case 'memosave':{const t=($('#memoIn').value||'').trim().slice(0,10);if(t)MEMO[WHO]=t;else delete MEMO[WHO];document.activeElement.blur();break}
+    case 'dtog':DOPEN=!DOPEN;break;case 'whox':if(e.target.closest('#who')&&!e.target.closest('button'))return;WHO=null;break;
     case 'tab':TAB=v;break;
     case 'snd':Snd.toggle();el.textContent=Snd.on?'소리 끄기':'소리 켜기';return;
     case 'tip':send({a:'tip',fid:n});return;
@@ -678,8 +681,8 @@ $('#mcol').addEventListener('click',e=>{const b=e.target.closest('[data-mc]');if
 const qr=new URLSearchParams(location.search).get('room');if(qr){$('#code').value=qr.toUpperCase().slice(0,4);$('#mmsg').textContent='이름을 입력하고 참가를 누르세요.'}
 let WHO=null;
 let TAB='act';
-function renderWho(){const w=$('#who'),md=$('#whoMod');if(WHO==null||!V.ps[WHO]){md.style.display='none';return}md.style.display='flex';const q=V.ps[WHO];const L=V.board.filter(b=>b.kind==='pub'&&b.by===WHO);
-  w.style.display='block';w.innerHTML=`<div class="row">${chip(WHO)}<b>${esc(q.n)}</b>${q.alive?'':'<span style="color:var(--red)">사망</span>'}<button data-x="whox" style="margin-left:auto;min-height:36px">닫기</button></div><p class="lbl sec">이 사람이 공개한 것 (${L.length})</p><div class="list">${L.length?L.map(b=>`<div class="it"><span class="d">${b.day}일${b.ph||'낮'}</span><span class="tx">${colz(b.text)}</span></div>`).join(''):'<p class="empty">아직 공개한 것이 없어요.</p>'}</div>`}
+function renderWho(){const w=$('#who'),md=$('#whoMod');if(document.activeElement&&document.activeElement.id==='memoIn'&&md.style.display==='flex')return;if(WHO==null||!V.ps[WHO]){md.style.display='none';return}md.style.display='flex';const q=V.ps[WHO];const L=V.board.filter(b=>b.kind==='pub'&&b.by===WHO);
+  w.style.display='block';w.innerHTML=`<div class="row">${chip(WHO)}<b>${esc(q.n)}</b>${q.alive?'':'<span style="color:var(--red)">사망</span>'}<button data-x="whox" style="margin-left:auto;min-height:36px">닫기</button></div>${V.started&&WHO!==V.me&&q.alive?`<div class="memo"><p class="lbl" style="color:#7fd8ff;font-weight:700;margin:0 0 6px">내 메모 (나만 보여요) ${MEMO[WHO]?'· 지금: '+esc(MEMO[WHO]):''}</p><div class="row">${['범인','시민','정치인'].map(m=>`<button class="mb ${MEMO[WHO]===m?'on':''}" data-x="memo" data-v="${m}">${m}</button>`).join('')}</div><div class="row" style="margin-top:6px">${JOBS.filter(j=>j!=='범인'&&j!=='정치인').concat('공범').map(m=>`<button class="mb ${MEMO[WHO]===m?'on':''}" data-x="memo" data-v="${m}">${m}</button>`).join('')}</div><div class="row" style="margin-top:6px"><input id="memoIn" maxlength="10" placeholder="직접 쓰기 (10자)" value="${esc(MEMO[WHO]||'')}"><button data-x="memosave">저장</button><button data-x="memox">지우기</button></div></div>`:''}<p class="lbl sec">이 사람이 공개한 것 (${L.length})</p><div class="list">${L.length?L.map(b=>`<div class="it"><span class="d">${b.day}일${b.ph||'낮'}</span><span class="tx">${colz(b.text)}</span></div>`).join(''):'<p class="empty">아직 공개한 것이 없어요.</p>'}</div>`}
 /* ---------- spooky BGM (WebAudio, no files) ---------- */
 const Snd={ctx:null,on:true,night:false,f:null,m:null,t:0,
   init(){if(this.ctx||!this.on)return;try{const C=new (window.AudioContext||window.webkitAudioContext)();this.ctx=C;
