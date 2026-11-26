@@ -168,7 +168,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
 <tr><td><b>4낮</b></td><td>범인이 직업 추리 1번 (맞히면 그 사람 처형)</td></tr></table>
 <h3 class="rh">꼭 알아둘 것</h3>
 <ul class="ck">
-<li><b>안개</b> 1~2낮과 밤엔 내 양옆 것만 보여요 (기자는 다 봐요)</li>
+<li><b>안개</b> 1~2낮과 밤엔 내 양옆 것만 보여요 (기자는 양옆 2명씩, 총 4명)</li>
 <li><b>밤 정보</b> 양옆이 밤에 고른 것은 다음 날 낮에 보여요</li>
 <li><b>투표</b> 최다 득표 처형 · 동점이나 기권 과반이면 처형 없음 · 나에게도 투표 가능</li>
 <li><b>죽으면</b> 죽은 사람의 직업은 비공개예요 (<b>목사</b>만 알 수 있어요) · 죽은 나는 모든 직업이 보여요 (환자는 두 번째 죽을 때)</li>
@@ -220,7 +220,7 @@ const DESC={범인:'밤마다 한 명을 죽여요.',
 의사:'한 명을 살려요 (자기 자신은 연속으로 못 살려요). 시신 검사, 수술(1번)도 돼요.',
 버스기사:'두 사람의 대상을 바꿔요.',
 백수:'범인을 찍어요. 맞히면 범인이 돼요.',
-기자:'모두의 말을 봐요. 낮·밤 한 번씩 몰래 제보해요 (밤 제보는 다음 날 공개, 죽어도 공개). 같은 사람을 두 번 조사하면 거짓말할 수 있는 사람인지 참말만 하는 사람인지 알아요.',
+기자:'양옆 2명씩(총 4명)의 말을 봐요. 낮·밤 한 번씩 몰래 제보해요 (밤 제보는 다음 날 공개, 죽어도 공개). 같은 사람을 두 번 조사하면 거짓말할 수 있는 사람인지 참말만 하는 사람인지 알아요.',
 목사:'나와 한 사람의 대상과 자리를 바꿔요 (양옆도 바뀌어요). 죽은 사람의 직업을 알 수 있어요.',
 정치인:'남의 투표권을 뺏어요. 투표로 뽑히면 혼자 이겨요. 범인이 모두 죽어 시민이 이기면 져요.',
 환자:'한 명의 다음 밤 행동을 막아요 (같은 사람을 연속으로는 못 막아요).',
@@ -250,7 +250,8 @@ function laterBot(p,ms,fn){later(ms,()=>{if(p.ai&&p.alive)fn()})}
 function sysMsg(text,kind){G.board.push({day:G.day,ph:G.phase==='night'?'밤':'낮',kind:kind||'sys',text});G.dirty=true}
 function see(pid,it){it.id=++G.fid;if(it.day==null)it.day=G.day;if(!it.ph)it.ph=G.phase==='night'?'밤':'낮';P(pid).feed.push(it);G.dirty=true}
 function neighbors(pid){const al=G.players.filter(q=>q.alive||q.id===pid).sort((a,b)=>a.seat-b.seat);const n=al.length;if(n<2)return[];const i=al.findIndex(q=>q.id===pid);return[...new Set([al[(i-1+n)%n].id,al[(i+1)%n].id])].filter(x=>x!==pid)}
-function seeAround(pid,mk){const ns=neighbors(pid);const rs=G.players.filter(q=>q.alive&&q.role==='기자'&&q.id!==pid&&!ns.includes(q.id)).map(q=>q.id);for(const n of[...ns,...rs])see(n,mk())}
+function near2(pid){const al=G.players.filter(q=>q.alive||q.id===pid).sort((a,b)=>a.seat-b.seat);const n=al.length;const i=al.findIndex(q=>q.id===pid);const st=new Set();for(const d of[1,2,-1,-2])st.add(al[((i+d)%n+n)%n].id);st.delete(pid);return[...st]}
+function seeAround(pid,mk){const ns=neighbors(pid);const rs=G.players.filter(q=>q.alive&&q.role==='기자'&&q.id!==pid&&!ns.includes(q.id)&&near2(q.id).includes(pid)).map(q=>q.id);for(const n of[...ns,...rs])see(n,mk())}
 
 function newGame(code,name,cap,solo){G={phase:'lobby',code,cap,solo,players:[],board:[],fid:0,q:[],tok:0,dirty:true,started:false,day:0,deadline:0,done:{},pubd:new Set()};addPlayer(name,false,'host',PREF)}
 function addPlayer(name,ai,link,pref){if(G.players.length>=G.cap)return null;const i=G.players.length;const used=new Set(G.players.map(q=>q.col));const p={id:i,name,col:(pref>=0&&pref<COLORS.length&&!used.has(pref))?pref:[...COLORS.keys()].find(c=>!used.has(c)),seat:freeSeat(),ai,link,alive:true,feed:[]};G.players.push(p);G.dirty=true;return p}
@@ -327,8 +328,8 @@ function nightSubmit(p,a){const sp=nightSpec(p);let act=null;if(G.day===4){if(a.
   if(!act)return;G.acts[p.id]=act;const n=G.day;if(p.role==='범인'&&!G.kdec&&p.blockNight!==n)G.kdec={by:p.id,t:act.t};if(p.role==='범인')G.kpre=null;if(p.role==='의사'&&act.mode==='heal'&&act.t===p.id)p.selfHeal=n;if(p.role==='환자'&&!act.none){p.lastBlockT=act.t;p.lastBlockN=n}instant(p,act);
   H(`${cr(p.id)}${p.blockNight===n?' [환자에게 막힘]':''}: `+(G._nd=act.none?'아무것도 안 함':act.t2!=null?`${cn(act.t)}와(과) ${cn(act.t2)}을(를) 바꿈`:act.m?`${cn(act.t)}을(를) ${ro(WN[act.m])} 노림`:act.mode==='heal'?`${cn(act.t)}을(를) 지킴`:act.mode==='surg'?`${cn(act.t)}의 시신을 수술`:act.mode==='exam'?`${cn(act.t)}의 시신을 검사`:`${cn(act.t)}을(를) 고름`));ml(p,'밤 선택: '+G._nd);
   const text=act.none?`[${n}밤] ${cn(p.id)}: 선택 안함`:`[${n}밤] ${cn(p.id)} → ${cn(act.t)}`;
-  if(G.day===4){const it0={k:'pick',who:p.id,tgt:act.none?null:act.t,night:n,text,day:n,ph:'밤'};G.n4.push(it0);G.players.filter(q=>q.alive&&q.role==='기자'&&q.id!==p.id).forEach(q=>see(q.id,Object.assign({},it0)))}else
-  {const ns=neighbors(p.id),rs=G.players.filter(q=>q.alive&&q.role==='기자'&&q.id!==p.id&&!ns.includes(q.id)).map(q=>q.id);for(const x of [...ns,...rs]){const it={k:'pick',who:p.id,tgt:act.none?null:act.t,night:n,text,day:n,ph:'밤'};if(P(x).role==='기자')see(x,it);else G.nq.push([x,it])}}nextTurn()}
+  if(G.day===4){const it0={k:'pick',who:p.id,tgt:act.none?null:act.t,night:n,text,day:n,ph:'밤'};G.n4.push(it0);G.players.filter(q=>q.alive&&q.role==='기자'&&q.id!==p.id&&near2(q.id).includes(p.id)).forEach(q=>see(q.id,Object.assign({},it0)))}else
+  {const ns=neighbors(p.id),rs=G.players.filter(q=>q.alive&&q.role==='기자'&&q.id!==p.id&&!ns.includes(q.id)&&near2(q.id).includes(p.id)).map(q=>q.id);for(const x of [...ns,...rs]){const it={k:'pick',who:p.id,tgt:act.none?null:act.t,night:n,text,day:n,ph:'밤'};if(P(x).role==='기자')see(x,it);else G.nq.push([x,it])}}nextTurn()}
 function nightTimeout(){const p=P(G.order[G.ti]);const sp=nightSpec(p);
   if(p.role==='범인'&&sp.targets.length)nightSubmit(p,{t:rnd(sp.targets),m:rnd(sp.methods)});
   else if(sp.none||!(sp.targets&&sp.targets.length))nightSubmit(p,{none:true});
@@ -738,7 +739,7 @@ const RDESC={범인:'[범인] 밤마다 한 명을 죽여요. 살인 방법은 �
 의사:'[시민] 밤마다 하나를 골라요: 한 명 살리기(그 밤 공격을 막음, 자기 자신은 연속으로 못 살림) / 시신 사인 검사 / 수술(게임당 1번, 범인에게 죽은 환자를 살림). 2낮에 거짓 직업을 말할 수 있어요.',
 버스기사:'[시민] 밤마다 두 사람을 골라 바꿔요. 그 밤 두 사람을 노린 모든 행동이 서로 바뀌어요. 범인의 공격이 범인 자신에게 가면 범인이 죽어요.',
 백수:'[중립] 밤마다 범인이라고 생각하는 사람을 찍어요. 맞히면 범인이 되고(범인에게는 색 없이 "백수가 범인을 찾았습니다"가 알려져요), 못 찾으면 시민 편이에요. 범인이 노리면 공범이 돼요.',
-기자:'[시민] 모든 사람의 말과 선택을 봐요. 낮에 한 번, 밤에 한 번 몰래 제보할 수 있어요(밤 제보는 다음 날 공개, 죽어도 공개). 밤마다 한 명을 조사해서, 같은 사람을 두 번 조사하면 거짓말할 수 있는 사람인지 참말만 하는 사람인지 알아요.',
+기자:'[시민] 양옆 2명씩, 총 4명의 말과 선택을 봐요 (밤 선택도 바로). 낮에 한 번, 밤에 한 번 몰래 제보할 수 있어요(밤 제보는 다음 날 공개, 죽어도 공개). 밤마다 한 명을 조사해서, 같은 사람을 두 번 조사하면 거짓말할 수 있는 사람인지 참말만 하는 사람인지 알아요.',
 목사:'[시민] 밤마다 한 명과 대상과 자리를 맞바꿔요. 나를 노린 행동은 그 사람에게, 그 사람을 노린 행동은 나에게 오고, 원탁 자리도 실제로 바뀌어요. 또 죽은 사람의 진짜 직업을 혼자 알 수 있어요(환자는 두 번째 죽었을 때).',
 정치인:'[중립] 밤마다 한 명의 다음 날 투표권을 빼앗아 내가 2표를 행사해요. 범인이 살아 있을 때 투표로 처형되면 혼자 승리하고 게임이 끝나요. 거짓 직업 가능.',
 환자:'[시민] 밤마다 한 명의 다음 밤 행동을 막아요(같은 사람을 연속으로는 못 막아요). 범인에게 죽어도 의사가 수술하면 살아나요. 거짓 직업 가능.',
