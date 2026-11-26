@@ -150,7 +150,7 @@ const DESC={범인:'밤마다 한 명을 죽여요.',
 백수:'범인을 찍어요. 맞히면 범인 편이 돼요.',
 기자:'모두의 말을 봐요. 하루 한 번 몰래 제보해요.',
 목사:'나와 한 사람의 대상을 바꿔요.',
-정치인:'남의 투표권을 뺏어요. 투표로 뽑히면 혼자 이겨요.',
+정치인:'남의 투표권을 뺏어요. 투표로 뽑히면 혼자 이겨요. 범인이나 공범이 죽으면 져요.',
 환자:'한 명의 다음 밤 행동을 막아요.',
 탐정:'한 명의 느낌 힌트를 받아요.',
 공범:'범인 편이에요. 능력은 없어요.'};
@@ -190,7 +190,7 @@ function startGame(){
   const pool=JOBS.filter(j=>j!=='범인'&&!(nk===2&&j==='백수'));
   const roles=shuffle([...Array(nk).fill('범인'),...shuffle(pool).slice(0,N-nk)]);
   G.players.forEach((p,i)=>{Object.assign(p,{role:roles[i],orig:roles[i],alive:true,feed:[],trace:null,claim:null,fake:null,blockNight:-1,usedSurg:false,byKiller:false,cause:null,found:false,polWin:false,hist:0,lastT:null,examined:[],win:false,deaths:0});p.team=teamOf(p.role);if(p.role==='범인')p.fake=rnd(pool.filter(j=>j!=='백수'))});
-  G.hist=[];G.started=true;G.day=0;G.board=[];G.pubd=new Set();G.dlog=[];G.method=null;G.steal=null;G.foundFlag=false;G.center={};G.centerM=null;
+  G.hist=[];G.started=true;G.day=0;G.board=[];G.pubd=new Set();G.dlog=[];G.method=null;G.steal=null;G.foundFlag=false;G.polLost=false;G.center={};G.centerM=null;
   G.centerBy=G.players.filter(p=>p.role==='범인').sort((a,b)=>a.seat-b.seat)[0].id;
   G.players.filter(p=>p.team==='K').forEach(p=>see(p.id,{k:'info',text:'범인: '+G.players.filter(q=>q.team==='K').map(q=>cn(q.id)).join(', ')+(p.fake?` · 내 가짜 직업은 ${p.fake}`:'')}));
   setPhase('intro',T_SEC);sysMsg(`게임 시작! 이번 게임의 범인은 ${nk}명이에요. 원 가운데에 한 사람이 앉아 있다…`);
@@ -251,7 +251,7 @@ const causeText=c=>{if(!c)return null;if(c==='처형')return'투표로 처형됐
 const ro=w=>{const k=w.charCodeAt(w.length-1),j=(k-0xAC00)%28;return w+(j===0||j===8?'로':'으로')};
 function H(t){if(!G.hist)G.hist=[];const lb=G.day===0?'시작':`${G.day}일 ${G.phase==='night'?'밤':'낮'}`;G.hist.push({lb,t})}
 const cr=i=>`${cn(i)}(${P(i).role})`;
-function kill(p,cause,ph,list){if(!p||!p.alive)return;H(`💀 ${cr(p.id)} 사망 — ${cause==='처형'?'투표로 처형':cause==='총상'?'군인의 총':'범인의 '+cause}`);p.alive=false;p.deaths=(p.deaths||0)+1;p.cause=cause;G.dlog.push({pid:p.id,day:G.day,ph});if(list)list.push(p.id)}
+function kill(p,cause,ph,list){if(!p||!p.alive)return;if(p.team==='K'&&!G.polLost){G.polLost=true;G.players.filter(q=>q.role==='정치인').forEach(q=>{see(q.id,{k:'info',text:'범인 편이 죽었다. 정치인은 이제 이길 수 없다 (패배 확정).'});H(`정치인 ${cn(q.id)} 패배 확정 (범인 편 사망)`)})}H(`💀 ${cr(p.id)} 사망 — ${cause==='처형'?'투표로 처형':cause==='총상'?'군인의 총':'범인의 '+cause}`);p.alive=false;p.deaths=(p.deaths||0)+1;p.cause=cause;G.dlog.push({pid:p.id,day:G.day,ph});if(list)list.push(p.id)}
 function res(pid,text,extra){H(`${cr(pid)} 결과: ${text}`);see(pid,Object.assign({k:'res',text:`[${G.day}밤 결과] ${text}`},extra||{}))}
 function resolveNight(){const k=G.day,A=G.acts,dead=[];
   const blk=new Set(G.players.filter(p=>p.blockNight===k).map(p=>p.id));const ok=id=>A[id]&&!A[id].none&&!blk.has(id);
@@ -305,8 +305,8 @@ function endMeet(){alive().forEach(p=>{if(!G.pubN[p.id]){const c=p.feed.filter(i
   let win=null;if(ab*2<=tot&&ids.length&&(ids.length===1||w[ids[0]]>w[ids[1]]))win=ids[0];
   const lines=[ids.map(i=>`${cn(i)} ${w[i]}표`).join(', ')+(ab?` · 미선택 ${ab}`:'')||'표 없음'];
   const ex=[];if(G.gallows!=null)ex.push(G.gallows);if(win!=null&&!ex.includes(win))ex.push(win);
-  const polWin=win!=null&&P(win).role==='정치인';if(polWin)P(win).polWin=true;
   ex.forEach(i=>kill(P(i),'처형','투표'));
+  const polWin=win!=null&&P(win).role==='정치인'&&!G.polLost;if(polWin)P(win).polWin=true;
   lines.push(ex.length?ex.map(i=>`${nmR(i,'이','가')} 처형되었다.`).join(' '):(ab*2>tot?'미선택이 과반이라 아무도 처형되지 않았다.':'표가 갈려 아무도 처형되지 않았다.'));
   H('🗳 투표 결과: '+lines.join(' '));sysMsg(`${G.day}일차 투표: `+lines.join(' '));const d=G.day;
   pause(lines.join('\n')+(polWin?'\n정치인이 투표로 뽑혔다!':''),8000,()=>{if(polWin)endGame('P');else if(!checkWin())startNight()})}
