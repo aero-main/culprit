@@ -320,7 +320,7 @@ function endGame(w){G.winner=w;G.endWhy=endReason(w);H('🏁 '+G.endWhy);sysMsg(
 function resetLobby(){G.players=G.players.filter(p=>(p.ai&&!p.away)||p.link);reindex();G.players.forEach(p=>{p.alive=true;p.feed=[];p.away=false});G.prevMethod=G.method;Object.assign(G,{phase:'lobby',started:false,day:0,board:[],banner:'',q:[]});G.tok++;G.dirty=true}
 
 function hostAct(pid,a){const p=P(pid);if(!p||!a)return;
-  if(G.phase==='lobby'){if(a.a==='seat'){const s=+a.s;if(s>=0&&s<G.cap&&!G.players.some(q=>q.seat===s)){p.seat=s;G.dirty=true}return}
+  if(G.phase==='lobby'){if(a.a==='seat'){const s=+a.s;if(!(s>=0&&s<G.cap)||s===p.seat)return;const o=G.players.find(q=>q.seat===s);if(!o){p.seat=s;G.dirty=true}else if(o.ai){o.seat=p.seat;p.seat=s;G.dirty=true}return}
     if(a.a==='color'){const c=+a.c;if(c>=0&&c<7&&!G.players.some(q=>q.col===c)){p.col=c;G.dirty=true}return}
     if(pid!==0)return;
     if(a.a==='shuffle'){const cs=shuffle([0,1,2,3,4,5,6]);const ss=shuffle([...Array(G.cap).keys()]);G.players.forEach((q,i)=>{q.col=cs[i];q.seat=ss[i]});sysMsg('색과 자리를 섞었어요!');return}
@@ -519,7 +519,7 @@ function renderMe(){const m=$('#mecard');if(!V.started){m.innerHTML=`<h3>참가�
 function renderAct(){const a=$('#act'),pr=V.pr;let h='';
   if(V.ph==='lobby'){const host=V.me===0;
     h=`<h3>${V.solo?'혼자 하기':'대기실'}</h3>`;
-    h+=`<p class="lbl" style="color:var(--gold);font-weight:700">원탁의 "빈자리"를 누르면 그 자리로 옮겨요</p><p class="lbl" style="color:var(--gold);font-weight:700">내 색 바꾸기 (눌러서 바꿔요)</p><div class="tgs">${COLORS.map(([cn2,cc],i)=>{const o=V.ps.find(q=>q.col===i);const mine=o&&o.id===V.me;return`<button class="tg ${mine?'on':''}" data-x="color" data-v="${i}" style="--c:${cc}" ${o&&!mine?'disabled':''}>${cn2}<small>${o?esc(o.n):'비어 있음'}</small></button>`}).join('')}</div>`;
+    h+=`<p class="lbl" style="color:var(--gold);font-weight:700">원탁의 "빈자리"나 AI 자리를 누르면 그 자리로 옮겨요</p><p class="lbl" style="color:var(--gold);font-weight:700">내 색 바꾸기 (눌러서 바꿔요)</p><div class="tgs">${COLORS.map(([cn2,cc],i)=>{const o=V.ps.find(q=>q.col===i);const mine=o&&o.id===V.me;return`<button class="tg ${mine?'on':''}" data-x="color" data-v="${i}" style="--c:${cc}" ${o&&!mine?'disabled':''}>${cn2}<small>${o?esc(o.n):'비어 있음'}</small></button>`}).join('')}</div>`;
     if(!V.solo&&V.code){const link=location.origin+location.pathname+'?room='+V.code;h+=`<p>방 코드 <b style="font-size:28px;letter-spacing:4px;color:var(--gold)">${V.code}</b></p><p class="hint">친구에게 코드나 링크를 보내 주세요. 들어온 순서대로 색이 정해집니다.</p><div class="row"><input readonly value="${esc(link)}" id="lnk"><button data-x="copy">링크 복사</button></div>`}
     if(host){h+=`<div class="row sec"><label class="lbl" for="cap2" style="margin:0">인원</label><select id="cap2">${[4,5,6,7].map(c=>`<option ${c===V.cap?'selected':''} ${c<V.ps.length?'disabled':''}>${c}</option>`).join('')}</select><button data-x="shuffle">색·자리 섞기</button><button data-x="addai">AI 추가</button><button data-x="delai">AI 빼기</button></div>
       <p class="hint">빈자리는 시작할 때 AI로 채워집니다.</p><button class="pri" data-x="start">게임 시작 (${V.ps.length}명 + AI ${V.cap-V.ps.length}명)</button>`}
@@ -577,7 +577,7 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-x]');if(!
     case 'tab':TAB=v;break;
     case 'snd':Snd.toggle();el.textContent=Snd.on?'소리 끄기':'소리 켜기';return;
     case 'tip':send({a:'tip',fid:n});return;
-    case 'seat':if(pr&&pr.k==='night'&&((pr.targets&&pr.targets.includes(n))||(pr.corpses&&pr.corpses.includes(n))))pick(n,pr);else WHO=n;break;
+    case 'seat':if(!V.started){if(n!==V.me)send({a:'seat',s:V.ps[n].seat});return}if(pr&&pr.k==='night'&&((pr.targets&&pr.targets.includes(n))||(pr.corpses&&pr.corpses.includes(n))))pick(n,pr);else WHO=n;break;
     case 't':if(pr&&pr.k==='night')pick(n,pr);else S.t=n;break;
     case 'm':S.m=v;break;case 'mode':S.mode=v;S.t=null;break;case 'gt':S.gt=n;break;case 'gj':S.gj=v;break;
     case 'go':send({a:'night',t:S.t,t2:S.t2,m:S.m,mode:S.mode});return;
