@@ -154,7 +154,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
 <div class="rp" data-p="1">
 <div class="flow"><div><span>1</span><b>낮</b>말하고 · 투표</div><i>→</i><div><span>2</span><b>밤</b>능력 쓰기</div><i>→</i><div><span>3</span><b>반복</b>승부가 날 때까지</div></div>
 <h3 class="rh">승리 조건</h3>
-<div class="win"><div class="wc t"><b>시민</b>범인을 모두 처형</div><div class="wc k"><b>범인 편</b>나머지를 모두 죽이면</div><div class="wc n"><b>정치인</b>투표로 처형되면 혼자 승리</div></div>
+<div class="win"><div class="wc t"><b>시민</b>범인을 모두 처형</div><div class="wc k"><b>범인 편</b>살아남은 수가 나머지(시민+중립)와 같거나 많아지면</div><div class="wc n"><b>정치인</b>투표로 처형되면 혼자 승리</div></div>
 <h3 class="rh">하루 흐름</h3>
 <ol class="steps">
 <li><b>0낮</b> 범인이 가운데 사람을 죽여요</li>
@@ -272,7 +272,7 @@ function startGame(){
   G.centerBy=G.players.filter(p=>p.role==='범인').sort((a,b)=>a.seat-b.seat)[0].id;
   {const KS=G.players.filter(p=>p.role==='범인').sort((a,b)=>(a._sp?1:0)-(b._sp?1:0));KS.forEach((p,i)=>{p.knum=KS.length>=2?i+1:0;p.kspec=p._sp||null})}
   G.players.filter(p=>p.team==='K').forEach(p=>see(p.id,{k:'info',text:(p.knum?`당신은 ${dn(p)}예요 (범인 ${p.knum}번). 군인을 찾아간 범인은 반격당해 죽어요(여럿이면 번호가 큰 범인이 대신). `:'')+(nk===2?'범인은 2명이에요. 다른 범인이 누군지는 몰라요. 밤에 고르는 대상은 범인끼리 공유되고, 번호가 가장 낮은 범인(1번 → 2번 → 3번)의 결정을 따라요.':'당신은 범인이에요.')+(p.fake?` · 내 가짜 직업은 ${p.fake}`:'')}));
-  setPhase('intro',T_SEC);{const kc=G.players.filter(p=>p.role==='범인').length;G.kinfo=nk>=2?`이번 게임의 범인 편은 ${nk}명이에요 (살인하는 범인 ${kc}명 포함).`:'이번 게임의 범인은 1명이에요.';sysMsg(G.kinfo,'note')}sysMsg('원 가운데에 한 사람이 있다…');
+  setPhase('intro',T_SEC);{const kc=G.players.filter(p=>p.role==='범인').length;G.kinfo=`이번 게임의 범인은 ${nk}명이에요.`;sysMsg(G.kinfo,'note')}sysMsg('원 가운데에 한 사람이 있다…');
   const c=P(G.centerBy);if(c.ai)laterBot(c,1500+Math.random()*2500,()=>hostAct(c.id,{a:'center',m:rnd(METHODS)}));
 }
 function pause(text,ms,next){G.banner=text;setPhase('pause',ms);G.next=next}
@@ -436,7 +436,7 @@ function endMeet(){alive().forEach(p=>{if(!G.pubN[p.id]){const c=p.feed.filter(i
   lines.push(ex.length?exk.map(i=>`${nmR(i,'이','가')} 처형되었다.`).concat(surv.map(i=>`${josa(cn(i),'이','가')} 처형대에 올랐지만 살아남았다! 한 번 더 뽑히면 처형된다.`)).join(' '):(ab*2>tot?'미선택이 과반이라 아무도 처형되지 않았다.':(ids.length>1&&w[ids[0]]===w[ids[1]])?'동률이라 아무도 처형되지 않았다.':'과반(절반이 넘는 표)을 받은 사람이 없어 아무도 처형되지 않았다.'));
   H('🗳 투표 결과: '+lines.join(' '));sysMsg(`${G.day}낮 투표: `+lines.join(' '),ex.length?'death':'note');const d=G.day;
   pause(lines.join('\n')+(polWin?'\n정치인이 투표로 뽑혔다!':''),8000,()=>{if(polWin)endGame('P');else if(!checkWin())startNight()})}
-function checkWin(){const al=alive();if(!al.some(p=>p.role==='범인'))return endGame('T');if(al.every(p=>sideOf(p)==='K'))return endGame('K');if(G.day>=30)return endGame('D');return false}
+function checkWin(){const al=alive();if(!al.some(p=>p.role==='범인'))return endGame('T');{const k=al.filter(p=>sideOf(p)==='K').length;if(k>=al.length-k)return endGame('K')}if(G.day>=30)return endGame('D');return false}
 function endReason(w){const K=G.players.filter(p=>p.orig==='범인'),cs=a=>a.map(p=>cn(p.id)).join(', ');
   if(w==='T'){const how=K.map(p=>`${cn(p.id)}: ${p.cause==='처형'?'투표로 처형':p.cause==='총상'?'군인의 총에 맞음':'자기 공격에 당함'}`).join(' / ');return`범인(${cs(K)})이 모두 죽어서 시민이 이겼어요. (${how})`}
   if(w==='K'){const al=alive(),kk=al.filter(p=>sideOf(p)==='K'),oo=al.filter(p=>sideOf(p)!=='K');return oo.length?`범인(${cs(kk)})과 나머지(${cs(oo)})의 수가 같아져서 범인이 이겼어요.`:`범인(${cs(kk)})만 살아남아서 범인이 이겼어요.`}
