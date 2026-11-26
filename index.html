@@ -248,7 +248,7 @@ const teamOf=r=>r==='범인'||r==='공범'||r==='사이비교주'?'K':r==='정�
 const sideOf=p=>p.team==='K'||(p.role==='백수'&&p.found)?'K':p.team;
 function setPhase(ph,ms){G.phase=ph;G.deadline=NOW()+ms;G.done={};G.tok++;G.dirty=true}
 function later(ms,fn){const tok=G.tok;G.q.push({at:NOW()+ms,fn,tok})}
-function laterBot(p,ms,fn){later(ms,()=>{if(p.ai&&p.alive)fn()})}
+function laterBot(p,ms,fn){later(G.solo?ms*0.3:ms,()=>{if(p.ai&&p.alive)fn()})}
 function sysMsg(text,kind){G.board.push({day:G.day,ph:G.phase==='night'?'밤':'낮',kind:kind||'sys',text});G.dirty=true}
 function see(pid,it){if(G.phase==='night'&&it.k!=='pick'&&G.nq){if(it.day==null)it.day=G.day;if(!it.ph)it.ph='밤';G.nq.push([pid,it]);return}it.id=++G.fid;if(it.day==null)it.day=G.day;if(!it.ph)it.ph=G.phase==='night'?'밤':'낮';P(pid).feed.push(it);G.dirty=true}
 function neighbors(pid){const al=G.players.filter(q=>q.alive||q.id===pid).sort((a,b)=>a.seat-b.seat);const n=al.length;if(n<2)return[];const i=al.findIndex(q=>q.id===pid);return[...new Set([al[(i-1+n)%n].id,al[(i+1)%n].id])].filter(x=>x!==pid)}
