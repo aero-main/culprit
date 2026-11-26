@@ -330,7 +330,7 @@ function hostAct(pid,a){const p=P(pid);if(!p||!a)return;
     case 'center':if(G.phase==='intro'&&pid===G.centerBy&&!G.centerM&&centerOpts().includes(a.m)){G.centerM=a.m;G.dirty=true}break;
     case 'fog':if(G.phase==='fog'&&!G.done[pid])fogSubmit(p,a.v);break;
     case 'night':if(G.phase==='night'&&G.order[G.ti]===pid)nightSubmit(p,a);break;
-    case 'vote':if(G.phase==='meet'&&G.votes[pid]===undefined&&!voidReason(p)&&(a.t===-1||(P(a.t)&&P(a.t).alive&&a.t!==pid))){G.votes[pid]=a.t;G.dirty=true}break;
+    case 'vote':if(G.phase==='meet'&&G.votes[pid]===undefined&&!voidReason(p)&&(a.t===-1||(P(a.t)&&P(a.t).alive))){G.votes[pid]=a.t;G.dirty=true}break;
     case 'pub':{if(G.phase!=='meet'||(G.pubN[pid]||0)>=1)break;const it=p.feed.find(x=>x.id===a.fid);if(!it||!pubable(p,it))break;doPub(p,it,false);break}
     case 'tip':{if(p.role!=='기자'||!['fog','meet'].includes(G.phase)||G.tipDay===G.day)break;const it=p.feed.find(x=>x.id===a.fid);if(!it||it.who===pid)break;
       H(`기자 ${cn(pid)} 몰래 제보: ${it.text}`);G.tipDay=G.day;G.pubd.add(pid+':'+a.fid);G.board.push({day:G.day,kind:'tip',by:-1,text:"기자 제보 · "+(it.ph==="낮"?`[${it.day}일차 낮] `:"")+it.text,it});G.dirty=true;break}
@@ -408,7 +408,7 @@ function promptFor(p){if(!p.alive)return null;
     case 'intro':return p.id===G.centerBy&&!G.centerM?{k:'center',ms:centerOpts()}:{k:'wait'};
     case 'fog':return{k:'fog',kind:G.day===1?'trace':'claim',opts:fogOpts(p),def:fogDef(p),done:!!G.done[p.id],tip};
     case 'night':return G.order[G.ti]===p.id?Object.assign({k:'night',role:p.role,blocked:p.blockNight===G.day,sold:p.role==='군인'?{t:p.lastT,n:p.hist}:null},nightSpec(p)):{k:'wait'};
-    case 'meet':return{k:'meet',voted:G.votes[p.id],vd:voidReason(p),pubLeft:1-(G.pubN[p.id]||0),pubDone:(G.pubN[p.id]||0)>0,guess:G.day===4&&p.role==='범인'&&!G.guessed,cands:alive().filter(q=>q.id!==p.id).map(q=>q.id),gc:alive().filter(q=>q.team!=='K').map(q=>q.id),tip};
+    case 'meet':return{k:'meet',voted:G.votes[p.id],vd:voidReason(p),pubLeft:1-(G.pubN[p.id]||0),pubDone:(G.pubN[p.id]||0)>0,guess:G.day===4&&p.role==='범인'&&!G.guessed,cands:alive().map(q=>q.id),gc:alive().filter(q=>q.team!=='K').map(q=>q.id),tip};
   }return null}
 function viewFor(pid){const p=P(pid),now=NOW();
   const v={ph:G.phase,code:G.code,cap:G.cap,solo:G.solo,day:G.day,left:Math.max(0,G.deadline-now),me:pid,banner:G.banner||'',started:G.started,
@@ -471,7 +471,7 @@ let S={key:''};
 const col=i=>V.ps[i]?COLORS[V.ps[i].col]:['?','#888'];
 const colz=t=>{let h=esc(t);COLORS.forEach(([n,c])=>{h=h.split(n).join(`<span class="chip" style="--c:${c}">${n}</span>`)});return h};
 const chip=i=>`<span class="chip" style="--c:${col(i)[1]}">${col(i)[0]}</span>`;
-const tgBtn=(i,on,x)=>`<button class="tg ${on?'on':''}" data-x="${x||'t'}" data-v="${i}" style="--c:${col(i)[1]}">${col(i)[0]}<small>${esc(V.ps[i].n)}</small></button>`;
+const tgBtn=(i,on,x)=>`<button class="tg ${on?'on':''}" data-x="${x||'t'}" data-v="${i}" style="--c:${col(i)[1]}">${col(i)[0]}<small>${i===V.me?'나 자신':esc(V.ps[i].n)}</small></button>`;
 function openHist(){if(!V||!V.end)return;const g=[];for(const x of V.end.hist){let b=g[g.length-1];if(!b||b.lb!==x.lb){b={lb:x.lb,a:[]};g.push(b)}b.a.push(x.t)}
   $('#histBody').innerHTML=g.map(b=>`<h3 style="font-size:20px;margin:14px 0 6px;color:${b.lb.includes('밤')?'#9d8cff':'var(--gold)'}">${esc(b.lb)}</h3>`+b.a.map(t=>`<div class="it" style="margin-bottom:4px${t.includes('거짓말')?';border-left:4px solid var(--red)':''}"><span class="tx">${colz(t)}</span></div>`).join('')).join('');
   $('#histMod').style.display='flex';$('#histMod').scrollTop=0}
