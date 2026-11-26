@@ -403,7 +403,7 @@ function promptFor(p){if(!p.alive)return null;
   }return null}
 function viewFor(pid){const p=P(pid),now=NOW();
   const v={ph:G.phase,code:G.code,cap:G.cap,solo:G.solo,day:G.day,left:Math.max(0,G.deadline-now),me:pid,banner:G.banner||'',started:G.started,
-    ps:G.players.map(q=>({id:q.id,n:q.name,col:q.col,seat:q.seat,ai:!!q.ai,away:!!q.away,alive:q.alive!==false,r:G.started&&q.alive===false&&!hidePat(q)?q.role:null,voted:G.phase==='meet'&&G.votes&&G.votes[q.id]!==undefined})),
+    ps:G.players.map(q=>({id:q.id,n:q.name,col:q.col,seat:q.seat,ai:!!q.ai,away:!!q.away,alive:q.alive!==false,r:G.started&&q.alive===false&&!hidePat(q)?q.role:null})),
     board:G.board.slice(-60).map(b=>({day:b.day,kind:b.kind,by:b.by,text:b.text}))};
   if(!G.started)return v;
   Object.assign(v,{cause:!p.alive?(hidePat(p)?'환자는 죽은 이유가 비밀이에요. 의사가 수술하면 살아날 수 있어요.':causeText(p.cause)):null,role:p.role,orig:p.orig,trace:p.trace,fake:p.fake,alive:p.alive,turn:G.phase==='night'?G.order[G.ti]:null,nb:neighbors(pid),center:G.center,
@@ -476,7 +476,6 @@ function drawBoard(){const N=V.ps.length,cx=200,cy=200,R=148;let h='';
     if(nb)h+=`<circle r="36" fill="none" stroke="#efe9f6" stroke-width="2" stroke-dasharray="5 4"/>`;
     h+=`<ellipse cy="26" rx="24" ry="6" fill="#0007"/><rect x="-21" y="-2" width="42" height="28" rx="14" fill="${c}"/><rect x="-21" y="-2" width="42" height="10" rx="5" fill="#fff2"/><circle cy="-14" r="14" fill="${c}" stroke="${me?'#fff':'#0005'}" stroke-width="${me?3:1.5}"/><circle cx="-4" cy="-18" r="4" fill="#fff4"/>`;
     if(!q.alive)h+=`<path d="M-16 -28 L16 4 M16 -28 L-16 4" stroke="#e0313f" stroke-width="5" stroke-linecap="round"/>`;
-    if(q.voted)h+=`<text x="-26" y="-20" font-size="13" fill="#f2c14e">✔</text>`;
     h+=`<text y="44" text-anchor="middle" font-size="14" font-weight="700" fill="#efe9f6">${esc(q.n)}${me?' (나)':''}</text>`+(q.r?`<text y="62" text-anchor="middle" font-size="15" font-weight="900" fill="#ff6b76">${esc(q.r)}</text>`:'')+`</g>`}
   $('#board').innerHTML=h;$('#fog').classList.toggle('on',fogDay);document.body.classList.toggle('night',V.ph==='night')}
 function render(){if(!V)return;const pr=V.pr;const key=[V.ph,V.day,V.turn,pr&&pr.k].join('|');if(key!==S.key&&pr&&(pr.k==='center'||(pr.k==='fog'&&!pr.done)||pr.k==='night'||pr.k==='meet'))TAB='act';if(key!==S.key&&(V.ph==='lobby'||V.ph==='end'))TAB='act';if(key!==S.key)S={key,t:null,t2:null,m:null,mode:'heal',gt:null,gj:null,ft:null};
