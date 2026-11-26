@@ -182,6 +182,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
 <li><b>번호</b> 범인이 2명 이상이면 1·2번 번호가 있고, 살인은 번호가 낮은 범인의 결정을 따라요. 2·3번은 각자 고른 곳으로 가요</li>
 <li><b>공유</b> 범인끼리만 보는 게시판에 한 밤에 1개 공유할 수 있어요</li>
 <li><b>거짓말</b> 1낮 흔적은 범인 1번만 거짓말 가능 · 가짜 직업은 이번 판에 없는 직업</li>
+<li><b>가짜 조사</b> 범인 2번은 게임당 1번, 고른 사람이 범인과 같은 흔적인 것처럼 경찰 조사 결과를 만들어 공개할 수 있어요</li>
 </ul>
 <p class="mh">직업끼리</p>
 <ul class="ck">
@@ -282,7 +283,7 @@ function startGame(){
   fillAI();const N=G.players.length,nk=N>=8?2:(N>=6&&Math.random()<.5?2:1);
   const pool=JOBS.filter(j=>j!=='범인'&&!(nk===2&&j==='백수')&&!(N===4&&j==='군인'));
   const roles=shuffle([...Array(nk).fill('범인'),...shuffle(pool).slice(0,N-nk)]);
-  const fakeUsed=[];G.players.forEach((p,i)=>{Object.assign(p,{role:roles[i],orig:roles[i],alive:true,feed:[],trace:null,claim:null,fake:null,blockNight:-1,usedSurg:false,byKiller:false,cause:null,found:false,polWin:false,hist:0,lastT:null,examined:[],win:false,deaths:0,mylog:[],visits:[],knum:0});p.team=teamOf(p.role);if(p.role==='범인'){const ab=JOBS.filter(j=>j!=='범인'&&!roles.includes(j));p.fake=ab.length?rnd(ab):rnd(pool.filter(j=>j!=='백수'));fakeUsed.push(p.fake)}});
+  const fakeUsed=[];G.players.forEach((p,i)=>{Object.assign(p,{role:roles[i],orig:roles[i],alive:true,feed:[],trace:null,claim:null,fake:null,blockNight:-1,usedSurg:false,byKiller:false,cause:null,found:false,polWin:false,hist:0,lastT:null,examined:[],win:false,deaths:0,mylog:[],visits:[],knum:0,usedFake:false,usedSearch:false});p.team=teamOf(p.role);if(p.role==='범인'){const ab=JOBS.filter(j=>j!=='범인'&&!roles.includes(j));p.fake=ab.length?rnd(ab):rnd(pool.filter(j=>j!=='백수'));fakeUsed.push(p.fake)}});
   G.hist=[];G.started=true;G.day=0;G.board=[];G.pubd=new Set();G.dlog=[];G.method=null;G.steal=null;G.foundFlag=false;G.hasDoc=G.players.some(p=>p.role==='의사');G.nq=[];G.vq=null;G.tipQ=[];G.tipK={};G.polLost=false;G.center={};G.centerM=null;
   G.centerBy=G.players.filter(p=>p.role==='범인').sort((a,b)=>a.seat-b.seat)[0].id;
   shuffle(G.players.filter(p=>p.role==='범인')).forEach((p,i)=>{p.knum=nk>=2?i+1:0});
@@ -318,7 +319,7 @@ function nextTurn(){G.ti++;G.tok++;G.dirty=true;if(G.ti>=G.order.length){resolve
   const p=P(G.order[G.ti]);G.deadline=NOW()+T_SEC;if(p.ai)laterBot(p,2500+Math.random()*4500,()=>botNight(p))}
 function nightSpec(p){const others=alive().filter(q=>q.id!==p.id).map(q=>q.id);
   switch(p.role){
-    case '범인':return{targets:alive().filter(q=>q.id!==p.id&&q.role!=='공범').map(q=>q.id),methods:[G.method],none:false};
+    case '범인':return{targets:alive().filter(q=>q.id!==p.id&&q.role!=='공범').map(q=>q.id),methods:[G.method],none:false,fake:p.knum===2&&!p.usedFake?alive().filter(q=>q.id!==p.id).map(q=>q.id):null};
     case '버스기사':return{targets:alive().map(q=>q.id),two:true,none:true};
     case '의사':return{heal:true,targets:alive().map(q=>q.id).filter(i=>!(i===p.id&&p.selfHeal===G.day-1)),corpses:G.players.filter(q=>!q.alive).map(q=>q.id),none:true,surgery:!p.usedSurg};
     case '경찰':return{targets:others,none:false,police:true,jobAvail:G.day>=2&&!p.usedSearch,corpses:G.hasDoc?null:G.players.filter(q=>!q.alive).map(q=>q.id)};
@@ -340,7 +341,7 @@ function instant(p,act){if(act.none)return;const id=p.id,k=G.day,A=G.acts;const 
     case '백수':{const yes=P(t).role==='범인';if(yes){p.found=true;G.foundFlag=true}res(id,yes?`${cn(t)}! 범인을 찾았다!`:`${cn(t)}는 범인이 아니다.`,{k:'hb',who:t,yes});break}
     case '의사':{const c=P(A[id].t);;break}
   }}
-function nightSubmit(p,a){const sp=nightSpec(p);let act=null;if(G.day===4){if(a.w!=null&&P(a.w)&&P(a.w).alive&&a.w!==p.id)G.watch[p.id]=a.w;else{const nb=neighbors(p.id);if(nb.length)G.watch[p.id]=nb[0]}}
+function nightSubmit(p,a){const sp=nightSpec(p);let act=null;if(sp.fake&&a.fk!=null&&sp.fake.includes(a.fk)){p.usedFake=true;const tr=traceOf(G.method);res(p.id,`${cn(a.fk)} 몸수색: ${tr}`,{k:'police',who:a.fk,v:tr});H(`범인 2번 ${cn(p.id)} 가짜 조사: ${cn(a.fk)} → ${tr}`)}if(G.day===4){if(a.w!=null&&P(a.w)&&P(a.w).alive&&a.w!==p.id)G.watch[p.id]=a.w;else{const nb=neighbors(p.id);if(nb.length)G.watch[p.id]=nb[0]}}
   if(a.none&&(sp.none||(!sp.targets||!sp.targets.length)&&!(sp.corpses&&sp.corpses.length)))act={none:true};
   else if(sp.two){if(sp.targets.includes(a.t)&&sp.targets.includes(a.t2)&&a.t!==a.t2)act={t:a.t,t2:a.t2}}
   else if(sp.heal){if(a.mode==='heal'){if(sp.targets.includes(a.t))act={t:a.t,mode:'heal'}}else if(sp.corpses.includes(a.t))act={t:a.t,mode:a.mode==='surg'&&sp.surgery?'surg':'exam'}}
@@ -502,10 +503,10 @@ function botFog(p){const o=fogOpts(p);let v;
   else if(p.role==='정치인')v=Math.random()<.5?'정치인':rnd(['의사','목사','기자']);else v=p.role;
   hostAct(p.id,{a:'fog',v:o.includes(v)?v:fogDef(p)})}
 function botTip(p){if(Math.random()<.7){const it=bestItem(p);if(it)hostAct(p.id,{a:'tip',fid:it.id})}}
-function botNight(p){const sp=nightSpec(p),s=sus(p),T=sp.targets||[];const top=()=>T.filter(t=>t!==p.id).sort((a,b)=>(s[b]||0)-(s[a]||0))[0];let a={none:true};
+function botNight(p){let a0fk=null;const sp=nightSpec(p),s=sus(p),T=sp.targets||[];const top=()=>T.filter(t=>t!==p.id).sort((a,b)=>(s[b]||0)-(s[a]||0))[0];let a={none:true};
   switch(p.role){
     case '범인':{const seen=seenItems(p);const sc=t=>{let x=Math.random()*2;seen.forEach(it=>{if(it.k==='claim'&&it.who===t&&['경찰','탐정','기자','의사'].includes(it.v))x+=2});x+=G.board.filter(b=>b.by===t).length*.7;return x};
-      let t=T.slice().sort((a,b)=>sc(b)-sc(a))[0];if(G.kdec&&G.kdec.by!==p.id&&T.includes(G.kdec.t))t=G.kdec.t;else if(G.kpre&&G.kpre.by!==p.id&&T.includes(G.kpre.t))t=G.kpre.t;a={t,m:rnd(sp.methods)};break}
+      if(sp.fake&&G.day>=1&&Math.random()<.5){const c=sp.fake.filter(i=>P(i).team!=='K');if(c.length)a0fk=rnd(c)}let t=T.slice().sort((a,b)=>sc(b)-sc(a))[0];if(G.kdec&&G.kdec.by!==p.id&&T.includes(G.kdec.t))t=G.kdec.t;else if(G.kpre&&G.kpre.by!==p.id&&T.includes(G.kpre.t))t=G.kpre.t;a={t,m:rnd(sp.methods)};break}
     case '경찰':{const t=top();if(sp.jobAvail&&t!=null&&((s[t]||0)>=3||Math.random()<.3))a={t,mode:'job'};else{const done=new Set(p.feed.filter(i=>i.k==='police').map(i=>i.who));const c=T.filter(x=>!done.has(x));a={t:rnd(c.length?c:T),mode:'trace'}}break}
     case '탐정':{const done=new Set(p.feed.filter(i=>i.k==='det').map(i=>i.who));const c=T.filter(t=>!done.has(t));const pool=c.length?c:T;
       a={t:rnd(pool)};break}
@@ -520,6 +521,7 @@ function botNight(p){const sp=nightSpec(p),s=sus(p),T=sp.targets||[];const top=(
     default:if(T.length)a={t:rnd(T)}}
   if(a.t==null&&!a.none)a={none:true};
   if(G.day===4){const o=alive().filter(q=>q.id!==p.id).map(q=>q.id);if(o.length)a.w=top()!=null&&Math.random()<.6?top():rnd(o)}
+  if(typeof a0fk!=='undefined'&&a0fk!=null)a.fk=a0fk;
   hostAct(p.id,Object.assign({a:'night'},a));if(G.phase==='night'&&G.order[G.ti]===p.id)nightTimeout()}
 function botVote(p){const s=sus(p);const c=alive().filter(q=>q.id!==p.id&&!knownMates(p).includes(q.id)).map(q=>q.id);if(!c.length)return -1;
   const t=c.sort((a,b)=>s[b]-s[a])[0];if(s[t]>=2)return t;return Math.random()<.55?-1:rnd(c)}
@@ -706,6 +708,7 @@ function renderAct(){const a=$('#act'),pr=V.pr;let h='';
     h=`<h3>나의 차례 · ${esc(pr.role)}</h3><p class="hint">${L[pr.role]||''}. 고른 색은 다음 날 낮에 내 양옆에게 보입니다 (기자는 바로 봐요)${pr.two?' (첫 번째 색만)':''}.</p>`;
     if(V.kshare&&(V.kshare.dec!=null||V.kshare.pre!=null))h+=V.kshare.dec!=null?`<p style="color:#ff6b76;font-weight:700">범인 ${V.kshare.decN}번이 ${chip(V.kshare.dec)}을(를) 죽이기로 결정했어요. ${V.kshare.myN&&V.kshare.myN<V.kshare.decN?'(내 번호가 더 낮아서 내 결정이 우선이에요)':'(번호가 더 낮은 범인의 결정을 따라요)'}</p>`:`<p style="color:#ff6b76;font-weight:700">다른 범인이 ${chip(V.kshare.pre)}을(를) 고르는 중이에요 (아직 결정 안 함)</p>`;
     if(pr.police){if(S.mode!=='job'&&S.mode!=='corpse')S.mode='trace';h+=`<div class="row"><button data-x="mode" data-v="trace" class="${S.mode==='trace'?'on':''}">흔적 조사</button><button data-x="mode" data-v="job" class="${S.mode==='job'?'on':''}" ${pr.jobAvail?'':'disabled'}>직업 조사 (게임당 1번)</button>${pr.corpses?`<button data-x="mode" data-v="corpse" class="${S.mode==='corpse'?'on':''}" ${pr.corpses.length?'':'disabled'}>시신 조사 (사인)</button>`:''}</div><p class="hint">${pr.jobAvail?'직업 조사: 고른 사람의 진짜 직업을 알아내요 (딱 1번).':'직업 조사는 2밤부터, 게임당 1번이에요.'} 흔적 조사는 매일 밤 할 수 있어요.</p>`}
+    if(pr.fake)h+=`<div class="rref" style="margin:6px 0;border-left:4px solid var(--red)"><p style="color:#ff8c96;font-weight:700">범인 2번: 가짜 조사 (게임당 1번, 선택)</p><p class="hint">고른 사람이 범인과 같은 흔적을 가진 것처럼 경찰 조사 결과가 나와요. 낮에 공개해서 누명을 씌울 수 있어요.</p><div class="tgs">${pr.fake.map(i=>tgBtn(i,S.fk===i,'fk')).join('')}</div></div>`;
     if(pr.watch)h+=`<div class="rref" style="margin:6px 0"><p style="color:#7fd8ff;font-weight:700">4밤: 지켜볼 사람 1명 (양옆 대신 이 사람의 선택만 보여요)</p><div class="tgs">${pr.watch.map(i=>tgBtn(i,S.w===i,'w')).join('')}</div></div>`;
     if(pr.blocked)h+='<p style="color:var(--red)">환자의 방해로 이번 밤 행동은 무효가 됩니다. (위장용으로 골라 주세요)</p>';
     if(pr.sold&&pr.sold.t!=null)h+=`<p class="hint">지금 ${col(pr.sold.t)[0]}을(를) ${pr.sold.n}번 연속 겨누는 중</p>`;
@@ -754,9 +757,9 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-x]');if(!
     case 'seat':if(!V.started){if(n!==V.me)send({a:'seat',s:V.ps[n].seat});return}if(pr&&pr.k==='night'&&((pr.targets&&pr.targets.includes(n))||(pr.corpses&&pr.corpses.includes(n))))pick(n,pr);else WHO=n;break;
     case 't':if(pr&&pr.k==='night')pick(n,pr);else S.t=n;break;
     case 'm':S.m=v;break;case 'mode':S.mode=v;S.t=null;break;case 'gt':S.gt=n;break;case 'gj':S.gj=v;break;
-    case 'go':send({a:'night',t:S.t,t2:S.t2,m:S.m,mode:S.mode,w:S.w});return;
+    case 'go':send({a:'night',t:S.t,t2:S.t2,m:S.m,mode:S.mode,w:S.w,fk:S.fk});return;
     case 'none':send({a:'night',none:true,w:S.w});return;
-    case 'w':S.w=n;break;
+    case 'w':S.w=n;break;case 'fk':S.fk=S.fk===n?null:n;break;
     case 'vote':if(S.t!=null)send({a:'vote',t:S.t});return;
     case 'unvote':send({a:'unvote'});return;
     case 'guess':send({a:'guess',t:S.gt,job:S.gj});return;
