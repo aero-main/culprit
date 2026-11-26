@@ -182,6 +182,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
 <li><b>살인</b> 우선순위 범인 → 스파이 → 도둑 → 사기꾼. 가장 앞선 범인은 매 밤 죽일 수 있고, 나머지 범인은 같은 사람을 두 번 노려야 죽여요</li>
 <li><b>범인 편 2명</b> 항상 범인 1명 + 보조 1명 (스파이·도둑·사기꾼·공범·사이비교주 중 랜덤)</li>
 <li><b>백수 → 공범</b> 백수가 범인을 찾거나 범인에게 붙잡히면 공범이 돼요. 백수 출신 공범은 같은 사람을 두 번 노리면 죽여요</li>
+<li><b>보조의 직업 발표</b> 2낮에 사이비교주는 무조건 "목사", 사기꾼은 무조건 "기자"라고 말해요</li>
 <li><b>공범·사이비교주</b> 범인 편 보조로 나와요 (살인 못 함, 범인과 서로 알아요). 사이비교주는 목사와 같은 능력 + 하루 1번 목사의 눈 결과를 골라서 공유</li>
 <li><b>공유</b> 범인끼리만 보는 게시판에 한 밤에 1개 공유할 수 있어요</li>
 <li><b>거짓말</b> 1낮 흔적은 범인 1번만 거짓말 가능 · 가짜 직업은 이번 판에 없는 직업</li>
@@ -312,7 +313,7 @@ function startDay(d){G.day=d;G.banner='';if(G.nq&&G.nq.length){G.nq.forEach(([x,
     if(d===1)alive().forEach(p=>{const o=fogOpts(p);if(o.length===1&&o[0]==='없음')G.done[p.id]=1});
     alive().forEach(p=>{if(p.ai&&!G.done[p.id]){laterBot(p,2500+Math.random()*8000,()=>botFog(p));if(p.role==='기자')laterBot(p,5000+Math.random()*10000,()=>botTip(p))}})}
   else startMeet(d)}
-function fogOpts(p){if(G.day===1)return p.role==='범인'&&(p.knum||0)<=1?TRACES.slice():[p.trace||'없음'];return FAKE_OK.includes(p.role)?JOBS.filter(j=>j!=='범인'):[p.role]}
+function fogOpts(p){if(G.day===1)return p.role==='범인'&&(p.knum||0)<=1?TRACES.slice():[p.trace||'없음'];if(p.role==='사이비교주')return['목사'];if(p.role==='범인'&&p.kspec==='사기꾼')return['기자'];return FAKE_OK.includes(p.role)?JOBS.filter(j=>j!=='범인'):[p.role]}
 function fogDef(p){const o=fogOpts(p);if(G.day===1)return o.includes(p.trace)?p.trace:o[0];if(p.fake&&o.includes(p.fake))return p.fake;return o.includes(p.role)?p.role:'백수'}
 function fogSubmit(p,v){if(!fogOpts(p).includes(v))return;G.done[p.id]=1;G.dirty=true;const c=cn(p.id);ml(p,G.day===1?`흔적을 "${v}"${josa(v,"이","").slice(v.length)}라고 말함`:`직업을 "${v}"${josa(v,"이","").slice(v.length)}라고 말함`);
   if(G.day===1)H(`${cr(p.id)}: 흔적이 "${v}"라고 말함${v!==p.trace?` (거짓말! 진짜는 ${p.trace})`:''}`);else H(`${cr(p.id)}: 직업이 "${v}"라고 말함${v!==p.role?' (거짓말!)':''}`);
