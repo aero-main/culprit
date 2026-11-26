@@ -296,7 +296,7 @@ function endMeet(){alive().forEach(p=>{if(!G.pubN[p.id]){const c=p.feed.filter(i
   pause(lines.join('\n')+(polWin?'\n정치인이 투표로 뽑혔다!':''),8000,()=>{if(polWin)endGame('P');else if(!checkWin())startNight()})}
 function checkWin(){const al=alive();if(!al.some(p=>p.role==='범인'))return endGame('T');if(al.every(p=>sideOf(p)==='K'))return endGame('K');if(G.day>=30)return endGame('D');return false}
 function endGame(w){G.winner=w;G.players.forEach(p=>{p.win=w==='P'?!!p.polWin:p.team==='K'?w==='K':p.role==='정치인'?false:(p.role==='백수'&&p.found)?(w==='K'&&p.alive):w==='T'});G.banner='';setPhase('end',0);return true}
-function resetLobby(){G.players=G.players.filter(p=>p.ai||p.link);reindex();G.players.forEach(p=>{p.alive=true;p.feed=[];p.away=false});G.prevMethod=G.method;Object.assign(G,{phase:'lobby',started:false,day:0,board:[],banner:'',q:[]});G.tok++;G.dirty=true}
+function resetLobby(){G.players=G.players.filter(p=>(p.ai&&!p.away)||p.link);reindex();G.players.forEach(p=>{p.alive=true;p.feed=[];p.away=false});G.prevMethod=G.method;Object.assign(G,{phase:'lobby',started:false,day:0,board:[],banner:'',q:[]});G.tok++;G.dirty=true}
 
 function hostAct(pid,a){const p=P(pid);if(!p||!a)return;
   if(G.phase==='lobby'){if(a.a==='color'){const c=+a.c;if(c>=0&&c<7&&!G.players.some(q=>q.col===c)){p.col=c;G.dirty=true}return}
@@ -307,6 +307,7 @@ function hostAct(pid,a){const p=P(pid);if(!p||!a)return;
     else if(a.a==='delai'){const i=G.players.map(q=>q.ai).lastIndexOf(true);if(i>0){G.players.splice(i,1);reindex()}}
     else if(a.a==='start')startGame();return}
   if(a.a==='again'){if(pid===0&&G.phase==='end')resetLobby();return}
+  if(a.a==='tolobby'){if(pid===0){resetLobby();sysMsg('대기실로 돌아왔어요.')}return}
   if(!p.alive)return;
   switch(a.a){
     case 'center':if(G.phase==='intro'&&pid===G.centerBy&&!G.centerM&&centerOpts().includes(a.m)){G.centerM=a.m;G.dirty=true}break;
@@ -432,7 +433,9 @@ function leaveGame(){leaving=true;
   if(iAmHost){clearInterval(timer);timer=null;const g=G;if(g)g.players.forEach(p=>{if(p.link&&p.link!=='host'&&p.link.open){try{p.link.send({t:'err',m:'방장이 방을 나갔어요.'})}catch(e){}}});const pr=peer;setTimeout(()=>{try{pr&&pr.destroy()}catch(e){}},400);peer=null;G=null;iAmHost=false}
   else{try{hostConn&&hostConn.close()}catch(e){}try{peer&&peer.destroy()}catch(e){}hostConn=null;peer=null}
   toMenu();setTimeout(()=>leaving=false,1500)}
-function askLeave(){if(!V){toMenu();return}const others=iAmHost&&G&&!G.solo&&G.players.some(p=>p.link&&p.link!=='host')&&V.ph!=='end';const mid=V.started&&V.ph!=='end'&&V.alive;
+let confirmAct='';
+function askLeave(){if(!V){toMenu();return}confirmAct='';const yb=$('[data-x="cyes"]');yb.textContent=iAmHost&&V.started&&V.ph!=='end'?'대기실로':'나가기';
+  if(iAmHost&&V.started){if(V.ph==='end'){send({a:'tolobby'});return}confirmAct='lobby';$('#cmsg').textContent=G&&G.solo?'게임을 그만두고 대기실로 갈까요?':'게임을 끝내고 모두 대기실로 돌아갈까요?';$('#confirm').style.display='flex';return}const others=iAmHost&&G&&!G.solo&&G.players.some(p=>p.link&&p.link!=='host')&&V.ph!=='end';const mid=V.started&&V.ph!=='end'&&V.alive;
   const msg=others?'방장이 나가면 모든 사람의 게임이 끝나요. 나갈까요?':mid?(iAmHost?'게임을 그만두고 나갈까요?':'게임 중에 나가면 AI가 대신해요. 나갈까요?'):'';
   if(!msg){leaveGame();return}$('#cmsg').textContent=msg;$('#confirm').style.display='flex'}
 addEventListener('popstate',()=>{if($('#game').style.display==='flex'){try{history.pushState({g:1},'')}catch(e){}askLeave()}});
@@ -534,7 +537,7 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-x]');if(!
     case 'addai':case 'delai':case 'start':case 'again':case 'shuffle':send({a:x});return;
     case 'color':send({a:'color',c:n});return;
     case 'back':case 'leave':askLeave();return;
-    case 'cyes':leaveGame();return;
+    case 'cyes':$('#confirm').style.display='none';if(confirmAct==='lobby'){confirmAct='';send({a:'tolobby'})}else leaveGame();return;
     case 'cno':$('#confirm').style.display='none';return;
     case 'dclose':$('#deadMod').style.display='none';return;
     case 'center':send({a:'center',m:v});return;
