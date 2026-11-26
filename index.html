@@ -318,7 +318,7 @@ function resetLobby(){G.players=G.players.filter(p=>(p.ai&&!p.away)||p.link);rei
 function hostAct(pid,a){const p=P(pid);if(!p||!a)return;
   if(G.phase==='lobby'){if(a.a==='color'){const c=+a.c;if(c>=0&&c<7&&!G.players.some(q=>q.col===c)){p.col=c;G.dirty=true}return}
     if(pid!==0)return;
-    if(a.a==='shuffle'){const cs=shuffle([0,1,2,3,4,5,6]);G.players.forEach((q,i)=>q.col=cs[i]);sysMsg('색을 섞었어요!');return}
+    if(a.a==='shuffle'){const cs=shuffle([0,1,2,3,4,5,6]);const ss=shuffle(G.players.map((q,i)=>i));G.players.forEach((q,i)=>{q.col=cs[i];q.seat=ss[i]});sysMsg('색과 자리를 섞었어요!');return}
     if(a.a==='cap'){const c=+a.v;if(c>=4&&c<=7&&c>=G.players.length){G.cap=c;G.dirty=true}}
     else if(a.a==='addai'){if(G.players.length<G.cap){const used=new Set(G.players.map(q=>q.name));addPlayer((BOTN.find(b=>!used.has(b+' AI'))||'봇')+' AI',true,null)}}
     else if(a.a==='delai'){const i=G.players.map(q=>q.ai).lastIndexOf(true);if(i>0){G.players.splice(i,1);reindex()}}
@@ -515,7 +515,7 @@ function renderAct(){const a=$('#act'),pr=V.pr;let h='';
     h=`<h3>${V.solo?'혼자 하기':'대기실'}</h3>`;
     h+=`<p class="lbl" style="color:var(--gold);font-weight:700">내 색 바꾸기 (눌러서 바꿔요)</p><div class="tgs">${COLORS.map(([cn2,cc],i)=>{const o=V.ps.find(q=>q.col===i);const mine=o&&o.id===V.me;return`<button class="tg ${mine?'on':''}" data-x="color" data-v="${i}" style="--c:${cc}" ${o&&!mine?'disabled':''}>${cn2}<small>${o?esc(o.n):'비어 있음'}</small></button>`}).join('')}</div>`;
     if(!V.solo&&V.code){const link=location.origin+location.pathname+'?room='+V.code;h+=`<p>방 코드 <b style="font-size:28px;letter-spacing:4px;color:var(--gold)">${V.code}</b></p><p class="hint">친구에게 코드나 링크를 보내 주세요. 들어온 순서대로 색이 정해집니다.</p><div class="row"><input readonly value="${esc(link)}" id="lnk"><button data-x="copy">링크 복사</button></div>`}
-    if(host){h+=`<div class="row sec"><label class="lbl" for="cap2" style="margin:0">인원</label><select id="cap2">${[4,5,6,7].map(c=>`<option ${c===V.cap?'selected':''} ${c<V.ps.length?'disabled':''}>${c}</option>`).join('')}</select><button data-x="shuffle">색 섞기</button><button data-x="addai">AI 추가</button><button data-x="delai">AI 빼기</button></div>
+    if(host){h+=`<div class="row sec"><label class="lbl" for="cap2" style="margin:0">인원</label><select id="cap2">${[4,5,6,7].map(c=>`<option ${c===V.cap?'selected':''} ${c<V.ps.length?'disabled':''}>${c}</option>`).join('')}</select><button data-x="shuffle">색·자리 섞기</button><button data-x="addai">AI 추가</button><button data-x="delai">AI 빼기</button></div>
       <p class="hint">빈자리는 시작할 때 AI로 채워집니다.</p><button class="pri" data-x="start">게임 시작 (${V.ps.length}명 + AI ${V.cap-V.ps.length}명)</button>`}
     else h+='<p class="hint">방장이 게임을 시작하기를 기다리는 중…</p>';
     h+='<button class="sec" data-x="back">← 메뉴로 나가기</button>';
