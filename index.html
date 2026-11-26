@@ -588,6 +588,8 @@ let wasAlive=null;
 const DRX=/\[?(\d+)일(낮|밤)( 결과)?\]?\s*/;
 function sd(text,day,ph){const m=String(text).match(DRX);if(!m)return[day!=null&&day!==''?day+'일'+(ph||'낮'):'',text];let t=String(text).replace(DRX,'').replace(/^\s*[:·]\s*/,'').replace(/·\s*:\s*/,'· ').replace(/^\(안개\):\s*/,'안개 · ');return[m[1]+'일'+m[2],t]}
 let MEMO={};
+document.addEventListener('input',e=>{if(e.target.id==='memoIn'&&WHO!=null&&V){const t=e.target.value.trim().slice(0,10);if(t)MEMO[WHO]=t;else delete MEMO[WHO];drawBoard()}});
+document.addEventListener('keydown',e=>{if(e.target.id==='memoIn'&&e.key==='Enter'){e.target.blur();WHO=null;render()}});
 function showView(v){if(!v.started)MEMO={};const died=v.started&&wasAlive===true&&v.alive===false;wasAlive=v.started?v.alive:null;V=v;recvAt=Date.now();if(died){TAB='act';$('#dmsg').textContent=v.cause||'';$('#deadMod').style.display='flex'}render()}
 function phaseName(){const d=V.day;return{lobby:'대기실',intro:'원 가운데에 한 사람이 있다…',fog:`${d}일낮 · 안개`,night:`${d}일밤`,meet:`${d}일낮 · 공개 회의`,pause:'',end:'게임 종료'}[V.ph]||''}
 function drawBoard(){const N=V.started?V.ps.length:V.cap,cx=200,cy=200,R=140;let h='';
@@ -686,7 +688,7 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-x]');if(!
     case 'center':send({a:'center',m:v});return;
     case 'fog':send({a:'fog',v});return;
     case 'pub':send({a:'pub',fid:n});return;
-    case 'who':WHO=n;break;case 'memo':MEMO[WHO]=v;break;case 'memox':delete MEMO[WHO];break;case 'memosave':{const t=($('#memoIn').value||'').trim().slice(0,10);if(t)MEMO[WHO]=t;else delete MEMO[WHO];document.activeElement.blur();break}
+    case 'who':WHO=n;break;case 'memo':MEMO[WHO]=v;WHO=null;break;case 'memox':delete MEMO[WHO];WHO=null;break;case 'memosave':{const t=($('#memoIn').value||'').trim().slice(0,10);if(t)MEMO[WHO]=t;else delete MEMO[WHO];document.activeElement.blur();break}
     case 'metog':MEOPEN=!MEOPEN;try{localStorage.setItem('bm-meopen',MEOPEN?'1':'0')}catch(_){}break;
     case 'dtog':DOPEN=!DOPEN;break;case 'ltog':LOPEN=!LOPEN;break;case 'whox':if(e.target.closest('#who')&&!e.target.closest('button'))return;WHO=null;break;
     case 'tab':TAB=v;break;
@@ -726,7 +728,7 @@ const qr=new URLSearchParams(location.search).get('room');if(qr){$('#code').valu
 let WHO=null;
 let TAB='act';
 function renderWho(){const w=$('#who'),md=$('#whoMod');if(document.activeElement&&document.activeElement.id==='memoIn'&&md.style.display==='flex')return;if(WHO==null||!V.ps[WHO]){md.style.display='none';return}md.style.display='flex';const q=V.ps[WHO];const L=V.board.filter(b=>b.kind==='pub'&&b.by===WHO);
-  w.style.display='block';w.innerHTML=`<div class="row">${chip(WHO)}<b>${esc(q.n)}</b>${q.alive?'':'<span style="color:var(--red)">사망</span>'}<button data-x="whox" style="margin-left:auto;min-height:36px">닫기</button></div>${V.started&&WHO!==V.me&&q.alive?`<div class="memo"><p class="lbl" style="color:#7fd8ff;font-weight:700;margin:0 0 6px">내 메모 (나만 보여요) ${MEMO[WHO]?'· 지금: '+esc(MEMO[WHO]):''}</p><div class="row">${['범인','시민','정치인'].map(m=>`<button class="mb ${MEMO[WHO]===m?'on':''}" data-x="memo" data-v="${m}">${m}</button>`).join('')}</div><div class="row" style="margin-top:6px">${JOBS.filter(j=>j!=='범인'&&j!=='정치인').concat('공범').map(m=>`<button class="mb ${MEMO[WHO]===m?'on':''}" data-x="memo" data-v="${m}">${m}</button>`).join('')}</div><div class="row" style="margin-top:6px"><input id="memoIn" maxlength="10" placeholder="직접 쓰기 (10자)" value="${esc(MEMO[WHO]||'')}"><button data-x="memosave">저장</button><button data-x="memox">지우기</button></div></div>`:''}<p class="lbl sec">이 사람이 공개한 것 (${L.length})</p><div class="list">${L.length?L.map(b=>`<div class="it">${(()=>{const[l,t]=sd(b.text,b.day,b.ph);return`<span class="d">${l}</span><span class="tx">${colz(t)}</span>`})()}</div>`).join(''):'<p class="empty">아직 공개한 것이 없어요.</p>'}</div>`}
+  w.style.display='block';w.innerHTML=`<div class="row">${chip(WHO)}<b>${esc(q.n)}</b>${q.alive?'':'<span style="color:var(--red)">사망</span>'}<button data-x="whox" style="margin-left:auto;min-height:36px">닫기</button></div>${V.started&&WHO!==V.me&&q.alive?`<div class="memo"><p class="lbl" style="color:#7fd8ff;font-weight:700;margin:0 0 6px">내 메모 (나만 보여요) ${MEMO[WHO]?'· 지금: '+esc(MEMO[WHO]):''}</p><div class="row">${['범인','시민','정치인'].map(m=>`<button class="mb ${MEMO[WHO]===m?'on':''}" data-x="memo" data-v="${m}">${m}</button>`).join('')}</div><div class="row" style="margin-top:6px">${JOBS.filter(j=>j!=='범인'&&j!=='정치인').concat('공범').map(m=>`<button class="mb ${MEMO[WHO]===m?'on':''}" data-x="memo" data-v="${m}">${m}</button>`).join('')}</div><div class="row" style="margin-top:6px"><input id="memoIn" maxlength="10" placeholder="직접 쓰기 (쓰면 바로 표시, Enter로 닫기)" value="${esc(MEMO[WHO]||'')}"><button data-x="memox">지우기</button></div></div>`:''}<p class="lbl sec">이 사람이 공개한 것 (${L.length})</p><div class="list">${L.length?L.map(b=>`<div class="it">${(()=>{const[l,t]=sd(b.text,b.day,b.ph);return`<span class="d">${l}</span><span class="tx">${colz(t)}</span>`})()}</div>`).join(''):'<p class="empty">아직 공개한 것이 없어요.</p>'}</div>`}
 /* ---------- spooky BGM (WebAudio, no files) ---------- */
 const Snd={ctx:null,on:true,night:false,f:null,m:null,t:0,
   init(){if(this.ctx||!this.on)return;try{const C=new (window.AudioContext||window.webkitAudioContext)();this.ctx=C;
