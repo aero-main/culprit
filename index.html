@@ -541,7 +541,7 @@ function tick(){if(!G)return;const now=NOW();
     case 'pause':if(now>=G.deadline){const f=G.next;G.next=null;f&&f()}break;
     case 'fog':if(now>=G.deadline||alive().every(p=>G.done[p.id]))endFog();break;
     case 'night':if(now>=G.deadline)nightTimeout();break;
-    case 'meet':{const all=alive().every(p=>G.votes[p.id]!==undefined||voidReason(p));if(all&&!G.allAt){G.allAt=now;G.deadline=Math.min(G.deadline,now+3000);G.dirty=true}else if(!all&&G.allAt){G.allAt=0}if(now>=G.deadline)endMeet();break}}
+    case 'meet':{const all=alive().every(p=>G.votes[p.id]!==undefined||voidReason(p));if(all&&!G.allAt){G.allAt=now;G.deadline=Math.min(G.deadline,now+5000);G.dirty=true}else if(!all&&G.allAt){G.allAt=0}if(now>=G.deadline)endMeet();break}}
   if(G.dirty){G.dirty=false;pushViews()}}
 
 function promptFor(p){if(!p.alive)return null;
