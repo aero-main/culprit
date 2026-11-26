@@ -171,7 +171,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
 <ul class="ck">
 <li><b>안개</b> 1~2낮과 밤엔 내 양옆 것만 보여요 (기자는 4~5인 2명 · 6~7인 3명 · 8~10인 4명)</li>
 <li><b>밤 정보</b> 양옆이 밤에 고른 것은 다음 날 낮에 보여요</li>
-<li><b>투표</b> 최다 득표 처형 · 동점이나 기권 과반이면 처형 없음 · 나에게도 투표 가능</li>
+<li><b>투표</b> 최다 득표 처형 · 동률(미선택과 같은 표 수 포함)이거나 기권 과반이면 처형 없음 · 나에게도 투표 가능</li>
 <li><b>죽으면</b> 죽은 사람의 직업은 비공개예요 (<b>목사</b>만 알 수 있어요) · 죽은 나는 모든 직업이 보여요 (환자는 두 번째 죽을 때)</li>
 <li><b>메모</b> 원탁의 사람을 누르면 나만 보는 메모를 남길 수 있어요</li>
 <li><b>범인 2명</b> 6~7명이면 1~2명 랜덤, 8명 이상이면 항상 2명 · 서로 몰라요</li>
@@ -409,13 +409,13 @@ function tally(){const w={};let ab=0,tot=0;
 function pubable(p,it){return it.who!==p.id&&it.k!=='info'&&!G.pubd.has(p.id+':'+it.id)}
 function doPub(p,it,auto){ml(p,(auto?'자동 공개: ':'공개: ')+it.text);H(`${cr(p.id)} ${auto?'자동 ':''}공개: ${it.text}`);G.pubd.add(p.id+':'+it.id);G.pubN[p.id]=(G.pubN[p.id]||0)+1;G.board.push({day:G.day,kind:'pub',by:p.id,text:(auto?'(자동 공개) ':'')+(it.ph==='낮'?`[${it.day}낮] `:'')+it.text,it});G.dirty=true}
 function endMeet(){alive().forEach(p=>{if(!G.pubN[p.id]){const c=p.feed.filter(it=>pubable(p,it));if(c.length)doPub(p,rnd(c),true)}});const{w,ab,tot}=tally();const ids=Object.keys(w).map(Number).sort((a,b)=>w[b]-w[a]);
-  let win=null;if(ab*2<=tot&&ids.length&&(ids.length===1||w[ids[0]]>w[ids[1]]))win=ids[0];
+  let win=null;if(ab*2<=tot&&ids.length&&w[ids[0]]>ab&&(ids.length===1||w[ids[0]]>w[ids[1]]))win=ids[0];
   const lines=[ids.map(i=>`${cn(i)} ${w[i]}표`).join(', ')+(ab?` · 미선택 ${ab}`:'')||'표 없음'];
   const ex=[];if(G.gallows!=null)ex.push(G.gallows);if(win!=null&&!ex.includes(win))ex.push(win);
   const surv=[];surv.forEach(i=>{P(i).voteSurv=true;H(`${cr(i)} 첫 처형에서 살아남음`)});const exk=ex.filter(i=>!surv.includes(i));
   exk.forEach(i=>kill(P(i),'처형','투표'));
   const polWin=win!=null&&P(win).role==='정치인'&&alive().some(q=>q.role==='범인');if(polWin)P(win).polWin=true;
-  lines.push(ex.length?exk.map(i=>`${nmR(i,'이','가')} 처형되었다.`).concat(surv.map(i=>`${josa(cn(i),'이','가')} 처형대에 올랐지만 살아남았다! 한 번 더 뽑히면 처형된다.`)).join(' '):(ab*2>tot?'미선택이 과반이라 아무도 처형되지 않았다.':'표가 갈려 아무도 처형되지 않았다.'));
+  lines.push(ex.length?exk.map(i=>`${nmR(i,'이','가')} 처형되었다.`).concat(surv.map(i=>`${josa(cn(i),'이','가')} 처형대에 올랐지만 살아남았다! 한 번 더 뽑히면 처형된다.`)).join(' '):(ab*2>tot?'미선택이 과반이라 아무도 처형되지 않았다.':'동률이라 아무도 처형되지 않았다.'));
   H('🗳 투표 결과: '+lines.join(' '));sysMsg(`${G.day}낮 투표: `+lines.join(' '),ex.length?'death':'sys');const d=G.day;
   pause(lines.join('\n')+(polWin?'\n정치인이 투표로 뽑혔다!':''),8000,()=>{if(polWin)endGame('P');else if(!checkWin())startNight()})}
 function checkWin(){const al=alive();if(!al.some(p=>p.role==='범인'))return endGame('T');{const k=al.filter(p=>sideOf(p)==='K').length;if(k>=al.length-k)return endGame('K')}if(G.day>=30)return endGame('D');return false}
