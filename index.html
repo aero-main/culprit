@@ -141,7 +141,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
 <h3 class="rh">하루 순서</h3>
 <ul><li><b>0일낮</b>: 범인이 원 가운데 사람을 죽여요. 이때 고른 방법은 끝까지 그대로예요. 의사가 있는 게임이면 어떤 방법이었는지 공개돼요.</li>
 <li><b>1일낮 (안개)</b>: 각자 내 몸의 흔적을 말해요. 범인만 거짓말을 할 수 있어요.</li>
-<li><b>밤</b>: 랜덤한 사람부터 시계 방향으로 한 명씩 20초 안에 능력을 써요. 누구를 골랐는지는 내 양옆 사람에게만 보여요.</li>
+<li><b>밤</b>: 랜덤한 사람부터 시계 방향으로 한 명씩 20초 안에 능력을 써요. 누구를 골랐는지는 다음 날 낮이 시작될 때 내 양옆 사람의 "내가 본 것"에 한꺼번에 들어가요. 기자만 밤에 바로 봐요.</li>
 <li><b>2일낮 (안개)</b>: 각자 직업을 말해요. 정치인·공범·환자·범인·군인·경찰은 거짓말을 할 수 있어요. 4~5명이면 이어서 회의와 투표를 해요.</li>
 <li><b>3일낮부터</b>: 공개 회의(2분). 본 것 중 딱 하나를 꼭 공개하고(안 하면 랜덤 공개) 투표해요.</li>
 <li><b>4일낮</b>: 범인이 한 사람의 직업을 한 번 추리할 수 있어요. 맞히면 그 사람은 투표와 상관없이 처형대에 올라요.</li></ul>
@@ -219,7 +219,7 @@ function setPhase(ph,ms){G.phase=ph;G.deadline=NOW()+ms;G.done={};G.tok++;G.dirt
 function later(ms,fn){const tok=G.tok;G.q.push({at:NOW()+ms,fn,tok})}
 function laterBot(p,ms,fn){later(ms,()=>{if(p.ai&&p.alive)fn()})}
 function sysMsg(text,kind){G.board.push({day:G.day,ph:G.phase==='night'?'밤':'낮',kind:kind||'sys',text});G.dirty=true}
-function see(pid,it){it.id=++G.fid;it.day=G.day;it.ph=G.phase==='night'?'밤':'낮';P(pid).feed.push(it);G.dirty=true}
+function see(pid,it){it.id=++G.fid;if(it.day==null)it.day=G.day;if(!it.ph)it.ph=G.phase==='night'?'밤':'낮';P(pid).feed.push(it);G.dirty=true}
 function neighbors(pid){const al=G.players.filter(q=>q.alive||q.id===pid).sort((a,b)=>a.seat-b.seat);const n=al.length;if(n<2)return[];const i=al.findIndex(q=>q.id===pid);return[...new Set([al[(i-1+n)%n].id,al[(i+1)%n].id])].filter(x=>x!==pid)}
 function seeAround(pid,mk){const ns=neighbors(pid);const rs=G.players.filter(q=>q.alive&&q.role==='기자'&&q.id!==pid&&!ns.includes(q.id)).map(q=>q.id);for(const n of[...ns,...rs])see(n,mk())}
 
@@ -235,7 +235,7 @@ function startGame(){
   const pool=JOBS.filter(j=>j!=='범인'&&!(nk===2&&j==='백수'));
   const roles=shuffle([...Array(nk).fill('범인'),...shuffle(pool).slice(0,N-nk)]);
   G.players.forEach((p,i)=>{Object.assign(p,{role:roles[i],orig:roles[i],alive:true,feed:[],trace:null,claim:null,fake:null,blockNight:-1,usedSurg:false,byKiller:false,cause:null,found:false,polWin:false,hist:0,lastT:null,examined:[],win:false,deaths:0});p.team=teamOf(p.role);if(p.role==='범인')p.fake=rnd(pool.filter(j=>j!=='백수'))});
-  G.hist=[];G.started=true;G.day=0;G.board=[];G.pubd=new Set();G.dlog=[];G.method=null;G.steal=null;G.foundFlag=false;G.tipQ=[];G.tipK={};G.polLost=false;G.center={};G.centerM=null;
+  G.hist=[];G.started=true;G.day=0;G.board=[];G.pubd=new Set();G.dlog=[];G.method=null;G.steal=null;G.foundFlag=false;G.nq=[];G.tipQ=[];G.tipK={};G.polLost=false;G.center={};G.centerM=null;
   G.centerBy=G.players.filter(p=>p.role==='범인').sort((a,b)=>a.seat-b.seat)[0].id;
   G.players.filter(p=>p.team==='K').forEach(p=>see(p.id,{k:'info',text:(nk===2?'범인은 2명이에요. 다른 범인이 누군지는 몰라요. 밤에 고르는 대상은 범인끼리 공유되고, 먼저 "결정"한 범인의 대상이 죽어요.':'당신은 범인이에요.')+(p.fake?` · 내 가짜 직업은 ${p.fake}`:'')}));
   setPhase('intro',T_SEC);sysMsg(`이번 게임의 범인은 ${nk}명이에요.`);sysMsg('원 가운데에 한 사람이 있다…');
@@ -249,7 +249,7 @@ function doCenter(){const m=G.centerM||rnd(centerOpts());G.method=m;const kt=tra
   sysMsg('원 가운데 사람이 살해당했다. 짙은 안개가 끼고, 모두의 몸에 알 수 없는 흔적이 남았다.');
   const hasDoc=G.players.some(p=>p.role==='의사');const docLine=hasDoc?`의사가 시신을 살펴봤다: ${MD[m]}.`:'';if(hasDoc){sysMsg('0일낮 · '+docLine);H('의사 검시 공개: '+MD[m])}
   pause('원 가운데 사람이 살해당했다!\n'+(hasDoc?docLine+'\n':'')+'안개가 끼기 시작한다…',6500,()=>startDay(1))}
-function startDay(d){G.day=d;G.banner='';if(G.tipQ&&G.tipQ.length){G.tipQ.forEach(e=>G.board.push(Object.assign({day:d},e)));G.tipQ=[];G.dirty=true}
+function startDay(d){G.day=d;G.banner='';if(G.nq&&G.nq.length){G.nq.forEach(([x,it])=>see(x,it));G.nq=[]}if(G.tipQ&&G.tipQ.length){G.tipQ.forEach(e=>G.board.push(Object.assign({day:d},e)));G.tipQ=[];G.dirty=true}
   if(G.foundFlag){G.foundFlag=false;G.players.filter(p=>p.team==='K'&&p.alive).forEach(p=>see(p.id,{k:'info',text:'⚠ 백수가 범인을 찾았습니다'}))}
   if(d<=2){setPhase('fog',T_SEC);sysMsg(d===1?'1일낮 (안개): 각자 자신의 흔적을 알린다. 양옆 사람에게만 보인다.':'2일낮 (안개): 각자 직업을 밝힌다. 양옆 사람에게만 보인다.');
     if(d===1)alive().forEach(p=>{const o=fogOpts(p);if(o.length===1&&o[0]==='없음')G.done[p.id]=1});
@@ -284,7 +284,7 @@ function nightSubmit(p,a){const sp=nightSpec(p);let act=null;
   if(!act)return;G.acts[p.id]=act;const n=G.day;if(p.role==='범인'&&!G.kdec&&p.blockNight!==n)G.kdec={by:p.id,t:act.t};if(p.role==='범인')G.kpre=null;if(p.role==='의사'&&act.mode==='heal'&&act.t===p.id)p.selfHeal=n;if(p.role==='환자'&&!act.none){p.lastBlockT=act.t;p.lastBlockN=n}
   H(`${cr(p.id)}${p.blockNight===n?' [환자에게 막힘]':''}: `+(act.none?'아무것도 안 함':act.t2!=null?`${cn(act.t)}와(과) ${cn(act.t2)}을(를) 바꿈`:act.m?`${cn(act.t)}을(를) ${ro(WN[act.m])} 노림`:act.mode==='heal'?`${cn(act.t)}을(를) 지킴`:act.mode==='surg'?`${cn(act.t)}의 시신을 수술`:act.mode==='exam'?`${cn(act.t)}의 시신을 검사`:`${cn(act.t)}을(를) 고름`));
   const text=act.none?`[${n}일밤] ${cn(p.id)}: 선택 안함`:`[${n}일밤] ${cn(p.id)} → ${cn(act.t)}`;
-  seeAround(p.id,()=>({k:'pick',who:p.id,tgt:act.none?null:act.t,night:n,text}));nextTurn()}
+  {const ns=neighbors(p.id),rs=G.players.filter(q=>q.alive&&q.role==='기자'&&q.id!==p.id&&!ns.includes(q.id)).map(q=>q.id);for(const x of [...ns,...rs]){const it={k:'pick',who:p.id,tgt:act.none?null:act.t,night:n,text,day:n,ph:'밤'};if(P(x).role==='기자')see(x,it);else G.nq.push([x,it])}}nextTurn()}
 function nightTimeout(){const p=P(G.order[G.ti]);const sp=nightSpec(p);
   if(p.role==='범인'&&sp.targets.length)nightSubmit(p,{t:rnd(sp.targets),m:rnd(sp.methods)});
   else if(sp.none||!(sp.targets&&sp.targets.length))nightSubmit(p,{none:true});
@@ -601,14 +601,14 @@ function renderAct(){const a=$('#act'),pr=V.pr;let h='';
     h=`<h3 style="color:var(--gold);font-size:30px">${w}</h3><p style="font-weight:700">${colz(V.end.why||'')}</p><button class="pri" data-x="hist" style="background:var(--gold);border-color:var(--gold);color:#1a1420;margin-bottom:10px">📜 게임 기록 보기 (무슨 일이 있었나)</button><p>${V.end.rs.find(r=>r.id===V.me).win?'<b style="color:var(--gold)">당신은 승리했습니다.</b>':'당신은 패배했습니다.'}</p><table><tr><th>색</th><th>직업</th><th>결과</th></tr>${V.end.rs.map(r=>`<tr><td>${chip(r.id)} ${esc(V.ps[r.id].n)}</td><td>${esc(r.role)}${r.orig!==r.role?' (원래 '+esc(r.orig)+')':''}</td><td>${r.win?'승리':'패배'}${r.alive?'':`<br><small style="color:#ff6b76">${esc(r.why||'사망')}</small>`}</td></tr>`).join('')}</table>`;
     h+=V.me===0?`<div class="row sec"><button class="pri" data-x="again">다시 하기 (대기실로)</button><button data-x="menu">← 메뉴로</button></div>`:'<p class="hint sec">방장이 다시 하기를 누르면 대기실로 갑니다.</p><button data-x="menu">← 메뉴로 나가기</button>';a.innerHTML=h;return}
   if(!V.alive){a.innerHTML=`<h3>당신은 사망했습니다</h3>${V.cause?`<p style="color:#ff6b76;font-weight:700;font-size:18px">죽은 이유: ${esc(V.cause)}</p>`:''}${V.ps.some(q=>q.rr)?`<p class="lbl sec">모든 사람의 직업 (죽은 사람만 보여요)</p><div class="tgs">${V.ps.map(q=>`<div class="tg" style="--c:${COLORS[q.col][1]};border:1px solid var(--line);border-left:8px solid var(--c);border-radius:10px">${COLORS[q.col][0]}<small>${esc(q.rr)}${q.alive?"":" · 사망"}</small></div>`).join("")}</div>`:V.patWait?`<p class="hint sec">환자는 두 번 죽어야 다른 사람의 직업을 볼 수 있어요.</p>`:""}<p class="hint">끝까지 지켜보거나, 나갈 수 있어요.</p><button class="pri" data-x="leave">게임 나가기</button>`;return}
-  if(!pr||pr.k==='wait'){h=`<h3>${V.ph==='night'?'밤':'잠시만요'}</h3>`+(V.kshare&&(V.kshare.dec!=null||V.kshare.pre!=null)?(V.kshare.dec!=null?`<p style="color:#ff6b76;font-weight:700">다른 범인이 ${chip(V.kshare.dec)}을(를) 죽이기로 결정했어요.</p>`:`<p style="color:#ff6b76;font-weight:700">다른 범인이 ${chip(V.kshare.pre)}을(를) 고르는 중… (아직 결정 안 함)</p>`):'')+`<p class="hint">${V.ph==='night'&&V.turn!=null?`${col(V.turn)[0]}의 차례입니다. 선택은 그 사람의 양옆에게만 보입니다.`:V.ph==='intro'?'범인이 가운데 사람을 어떻게 죽일지 고르는 중…':'진행 중…'}</p>`+(V.canTip?'<p class="hint sec" style="color:var(--gold)">기자: 밤에도 "내가 본 것"에서 제보할 수 있어요. 다음 날 낮에 공개돼요.</p>':'');a.innerHTML=h;return}
+  if(!pr||pr.k==='wait'){h=`<h3>${V.ph==='night'?'밤':'잠시만요'}</h3>`+(V.kshare&&(V.kshare.dec!=null||V.kshare.pre!=null)?(V.kshare.dec!=null?`<p style="color:#ff6b76;font-weight:700">다른 범인이 ${chip(V.kshare.dec)}을(를) 죽이기로 결정했어요.</p>`:`<p style="color:#ff6b76;font-weight:700">다른 범인이 ${chip(V.kshare.pre)}을(를) 고르는 중… (아직 결정 안 함)</p>`):'')+`<p class="hint">${V.ph==='night'&&V.turn!=null?`${col(V.turn)[0]}의 차례입니다. 선택은 다음 날 낮에 그 사람의 양옆에게만 보입니다.`:V.ph==='intro'?'범인이 가운데 사람을 어떻게 죽일지 고르는 중…':'진행 중…'}</p>`+(V.canTip?'<p class="hint sec" style="color:var(--gold)">기자: 밤에도 "내가 본 것"에서 제보할 수 있어요. 다음 날 낮에 공개돼요.</p>':'');a.innerHTML=h;return}
   if(pr.k==='center'){h=`<h3>가운데 사람을 죽일 방법</h3><p class="hint">고른 방법은 이번 게임 내내 바꿀 수 없습니다. 이 방법의 흔적이 계속 내 몸에 남아요. (군인도 같은 흔적을 가져요)</p><div class="row">${pr.ms.map(m=>`<button data-x="center" data-v="${m}">${WN[m]}</button>`).join('')}</div>`}
   else if(pr.k==='fog'){h=`<h3>${pr.kind==='trace'?'내 흔적 알리기':'내 직업 밝히기'}</h3>`;
     if(pr.done)h+=pr.kind==='trace'?'<p class="hint">흔적을 알렸어요. 기다려요.</p>':'<p class="hint">선택 완료. 다른 사람을 기다리는 중…</p>';
     else{h+=`<p class="hint">${pr.kind==='trace'?(pr.opts.length>1?'범인은 흔적을 고를 수 있습니다.':'나의 실제 흔적이 알려집니다.'):(pr.opts.length>1?'거짓 직업을 말할 수 있습니다.':'진짜 직업만 말할 수 있습니다.')} 양옆 사람에게만 보입니다.</p><div class="row">${pr.opts.map(o=>`<button data-x="fog" data-v="${o}" class="${o===pr.def?'pri':''}">${o}</button>`).join('')}</div>`}
     if(pr.tip)h+='<p class="hint sec">기자: 아래 "내가 본 것"에서 제보할 메시지를 하나 고를 수 있습니다.</p>'}
   else if(pr.k==='night'){const L={범인:'죽일 사람과 방법',경찰:'몸수색할 사람',군인:'겨눌 사람 (같은 사람 3밤 연속이면 사살)',의사:'살릴 사람(오늘 밤 범인에게서 지킴), 또는 살펴볼 시신',버스기사:'서로 바꿀 두 색',백수:'범인이라고 생각하는 사람',기자:'조사할 사람 (같은 사람 2번 조사하면 거짓말 가능 여부를 알아요)',목사:'나와 대상·자리를 맞바꿀 사람',정치인:'투표권을 빼앗을 사람',환자:'다음 밤 행동을 막을 사람',탐정:'힌트를 얻을 사람',공범:'아무나 (능력 없음, 위장용)'};
-    h=`<h3>나의 차례 · ${esc(pr.role)}</h3><p class="hint">${L[pr.role]||''}. 고른 색은 내 양옆에게 보입니다${pr.two?' (첫 번째 색만)':''}.</p>`;
+    h=`<h3>나의 차례 · ${esc(pr.role)}</h3><p class="hint">${L[pr.role]||''}. 고른 색은 다음 날 낮에 내 양옆에게 보입니다 (기자는 바로 봐요)${pr.two?' (첫 번째 색만)':''}.</p>`;
     if(V.kshare&&(V.kshare.dec!=null||V.kshare.pre!=null))h+=V.kshare.dec!=null?`<p style="color:#ff6b76;font-weight:700">다른 범인이 ${chip(V.kshare.dec)}을(를) 죽이기로 결정했어요. (내 선택은 그 범인이 막혔을 때만 쓰여요)</p>`:`<p style="color:#ff6b76;font-weight:700">다른 범인이 ${chip(V.kshare.pre)}을(를) 고르는 중이에요 (아직 결정 안 함)</p>`;
     if(pr.blocked)h+='<p style="color:var(--red)">환자의 방해로 이번 밤 행동은 무효가 됩니다. (위장용으로 골라 주세요)</p>';
     if(pr.sold&&pr.sold.t!=null)h+=`<p class="hint">지금 ${col(pr.sold.t)[0]}을(를) ${pr.sold.n}번 연속 겨누는 중</p>`;
