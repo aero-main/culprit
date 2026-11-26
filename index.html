@@ -77,7 +77,27 @@ h1,h2,h3{font-family:"Black Han Sans",sans-serif;font-weight:400;margin:0;line-h
 .sec{margin-top:14px}
 .mod{position:fixed;inset:0;background:#000c;display:none;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;z-index:9}
 .mod .card{max-width:680px;width:100%}
-.mod li{margin:4px 0}.memo{background:#0f2430;border:1px solid #2b5870;border-radius:12px;padding:10px;margin:10px 0}.mb{min-height:34px;padding:2px 10px;font-size:14px}.memo input{flex:1;min-height:38px}.rref{background:var(--pan2);border-radius:10px;padding:8px 12px;margin-top:8px;font-size:14px}.rref p{margin:4px 0}.rref table{font-size:14px}.rh{font-size:19px;color:var(--gold);margin:16px 0 4px}.rp table{margin:6px 0}.sum{padding-left:20px;font-size:17px}.sum li{margin:6px 0}.roles{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:6px}.roles li{background:var(--pan2);border-radius:10px;padding:8px 10px;margin:0;font-size:15px}.roles b{display:block;color:var(--gold)}
+.mod li{margin:4px 0}
+#rules .card{max-width:780px;padding:0;overflow:hidden;font-size:17px;line-height:1.75;background:#1b1624;border:1px solid #4a3d5e}
+#rules h2{padding:18px 20px 6px}
+#rpg{position:sticky;top:0;z-index:2;background:#1b1624;padding:8px 16px 12px;margin:0;border-bottom:1px solid var(--line);flex-wrap:nowrap;overflow-x:auto}
+#rpg button{flex:1;font-weight:700;font-size:16px;white-space:nowrap}#rpg button.on{background:var(--gold);color:#1a1420;border-color:var(--gold);outline:none}
+.rp{padding:4px 20px 8px}
+.rp .rh{font-size:21px;color:var(--gold);margin:22px 0 8px;padding:6px 12px;background:#2a2238;border-left:5px solid var(--gold);border-radius:6px}
+.rp ul{margin:0;padding-left:22px}.rp li{margin:8px 0}.rp b{color:#fff;background:#3a2f4d;padding:0 5px;border-radius:5px}
+.rp table{width:100%;font-size:17px;background:#231d2e;border-radius:10px;overflow:hidden}.rp th{background:#33294a;color:var(--gold)}.rp td,.rp th{padding:9px 12px}
+.rp .roles li{background:#231d2e;border:1px solid var(--line);padding:12px 14px;font-size:16px;line-height:1.6}.rp .roles b{display:block;background:none;padding:0;font-size:19px;color:var(--gold);margin-bottom:4px}
+#rules .rp .roles{grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+#bClose{margin:10px 20px 20px;min-width:140px}#roleList{padding:0!important}
+.flow{display:flex;align-items:stretch;gap:6px;margin:14px 0 4px}.flow div{flex:1;background:#2a2238;border:1px solid #4a3d5e;border-radius:12px;padding:10px;text-align:center;font-size:15px;line-height:1.4}.flow b{display:block;font-size:20px;color:var(--gold);background:none}.flow span{display:inline-block;width:24px;height:24px;border-radius:50%;background:var(--red);color:#fff;font-weight:900;line-height:24px;font-size:14px}.flow i{align-self:center;color:var(--gold);font-style:normal;font-size:20px}
+.tm{display:inline-block;padding:1px 10px;border-radius:999px;font-weight:900;font-size:15px;white-space:nowrap}.tm.t{background:#1f5d4a;color:#c9ffe9}.tm.k{background:#7a1a28;color:#ffd6dc}.tm.n{background:#5a4a12;color:#ffeeb0}
+.tr{font-weight:700;color:#ffb3bb}.rp u{text-decoration:none;color:#fff;font-weight:900;border-bottom:2px solid var(--gold)}
+.ck{list-style:none;padding:0!important}.ck li{background:#231d2e;border-radius:10px;padding:9px 12px;margin:6px 0}.ck b{margin-right:6px}
+.jt td:nth-child(4){text-align:center;font-weight:900}.jt td{vertical-align:top}
+@media(max-width:600px){.flow{flex-direction:column}.flow i{transform:rotate(90deg)}.jt{font-size:14px!important}}
+
+@media(max-width:600px){#rules{padding:6px}#rules .card{font-size:16px}.rp{padding:4px 12px 8px}#rpg button{font-size:14px;padding:6px 8px}}
+.memo{background:#0f2430;border:1px solid #2b5870;border-radius:12px;padding:10px;margin:10px 0}.mb{min-height:34px;padding:2px 10px;font-size:14px}.memo input{flex:1;min-height:38px}.rref{background:var(--pan2);border-radius:10px;padding:8px 12px;margin-top:8px;font-size:14px}.rref p{margin:4px 0}.rref table{font-size:14px}.rh{font-size:19px;color:var(--gold);margin:16px 0 4px}.rp table{margin:6px 0}.sum{padding-left:20px;font-size:17px}.sum li{margin:6px 0}.roles{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:6px}.roles li{background:var(--pan2);border-radius:10px;padding:8px 10px;margin:0;font-size:15px}.roles b{display:block;color:var(--gold)}
 #now{background:#f2c14e;color:#1a1420;font-weight:700;border-radius:10px;padding:8px 12px;margin-bottom:10px;display:none}
 table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px solid var(--line);text-align:left}
 .empty{color:var(--dim);font-size:14px}
@@ -130,49 +150,63 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
 <h2 style="font-size:30px;color:var(--red)">게임 규칙</h2>
 <div class="row sec" id="rpg"><button data-rp="1" class="on">1. 게임 진행</button><button data-rp="2">2. 흔적과 살인</button><button data-rp="3">3. 직업 상세</button></div>
 <div class="rp" data-p="1">
-<h3 class="rh">목표</h3>
-<ul><li><b>시민</b>: 범인을 모두 투표로 처형하면 승리해요.</li>
-<li><b>범인 편</b>(범인·공범): 살아 있는 범인 편 수가 나머지와 같아지면 승리해요.</li>
-<li><b>정치인</b>: 범인이 살아 있을 때 투표로 처형되면 혼자 승리해요. 범인이 모두 죽으면 패배.</li>
-<li><b>백수</b>: 범인을 찾아내면 범인 편, 못 찾으면 시민 편이에요.</li></ul>
-<h3 class="rh">인원 · 색 · 자리</h3>
-<ul><li>4~7명. 메뉴와 대기실에서 색과 자리를 고를 수 있어요 (방장은 색·자리 섞기 가능). 빈자리는 AI가 채워요.</li>
-<li>6~7명이면 범인이 1명 또는 2명(랜덤)이고, 시작할 때 몇 명인지 알려 줘요. 범인이 2명이면 서로 누군지 몰라요.</li></ul>
-<h3 class="rh">하루 순서</h3>
-<ul><li><b>0일낮</b>: 범인이 원 가운데 사람을 죽여요. 이때 고른 방법은 끝까지 그대로예요. 의사가 있는 게임이면 어떤 방법이었는지 공개돼요.</li>
-<li><b>1일낮 (안개)</b>: 각자 내 몸의 흔적을 말해요. 범인만 거짓말을 할 수 있어요.</li>
-<li><b>밤</b>: 랜덤한 사람부터 시계 방향으로 한 명씩 20초 안에 능력을 써요. 누구를 골랐는지는 다음 날 낮이 시작될 때 내 양옆 사람의 "내가 본 것"에 한꺼번에 들어가요. 기자만 밤에 바로 봐요.</li>
-<li><b>2일낮 (안개)</b>: 각자 직업을 말해요. 정치인·공범·환자·범인·군인·경찰은 거짓말을 할 수 있어요. 4~5명이면 이어서 회의와 투표를 해요.</li>
-<li><b>3일낮부터</b>: 공개 회의(2분). 본 것 중 딱 하나를 꼭 공개하고(안 하면 랜덤 공개) 투표해요.</li>
-<li><b>4일낮</b>: 범인이 한 사람의 직업을 한 번 추리할 수 있어요. 맞히면 그 사람은 투표와 상관없이 처형대에 올라요.</li></ul>
-<h3 class="rh">안개와 정보</h3>
-<ul><li>1~2일낮과 밤에는 내 양옆 사람의 말과 선택만 보여요. 기자는 모두 봐요.</li>
-<li>원탁의 색을 누르면 그 사람이 공개한 것을 볼 수 있어요.</li></ul>
-<h3 class="rh">투표</h3>
-<ul><li>표를 가장 많이 받은 사람이 처형돼요. 동점이거나 기권(미선택)이 절반을 넘으면 아무도 처형되지 않아요.</li>
-<li>나 자신에게도 투표할 수 있어요. 누가 누구를 찍었는지는 공개되지 않고 표 수만 나와요.</li></ul>
-<h3 class="rh">죽으면</h3>
-<ul><li>내가 왜 죽었는지와 모든 사람의 직업이 보여요. 환자는 두 번째로 죽었을 때부터 보여요.</li>
-<li>죽은 사람의 진짜 직업은 모두에게 공개돼요 (환자는 두 번째로 죽었을 때부터). 사인은 공개되지 않아요. 게임이 끝나면 "게임 기록"에서 모두 볼 수 있어요.</li>
-<li>원탁의 사람을 누르면 그 사람에 대한 내 메모(범인·시민·정치인·직업·직접 쓰기)를 남길 수 있어요. 나만 보여요.</li></ul>
+<div class="flow"><div><span>1</span><b>낮</b>말하고 · 공개하고 · 투표</div><i>→</i><div><span>2</span><b>밤</b>한 명씩 능력 쓰기</div><i>→</i><div><span>3</span><b>반복</b>한 편이 이길 때까지</div></div>
+<h3 class="rh">누가 이기나</h3>
+<table><tr><th>편</th><th>이기는 조건</th></tr>
+<tr><td><span class="tm t">시민</span></td><td>범인을 <u>모두</u> 투표로 처형</td></tr>
+<tr><td><span class="tm k">범인 편</span></td><td>범인 편 수 = 나머지 수가 되면</td></tr>
+<tr><td><span class="tm n">정치인</span></td><td>범인이 살아 있을 때 <u>투표로 처형</u>되면 혼자 승리</td></tr>
+<tr><td><span class="tm n">백수</span></td><td>범인을 찾으면 범인 편, 못 찾으면 시민 편</td></tr></table>
+<h3 class="rh">진행 순서</h3>
+<table><tr><th>언제</th><th>하는 일</th></tr>
+<tr><td><b>0일낮</b></td><td>범인이 가운데 사람을 죽여요 (방법은 끝까지 고정)</td></tr>
+<tr><td><b>1일낮</b> 안개</td><td>내 <u>흔적</u> 말하기 · 범인만 거짓말 가능</td></tr>
+<tr><td><b>밤</b></td><td>한 명씩 20초 안에 <u>능력</u> 쓰기</td></tr>
+<tr><td><b>2일낮</b> 안개</td><td>내 <u>직업</u> 말하기 · 일부 직업 거짓말 가능<br><small>4~5명이면 이어서 투표</small></td></tr>
+<tr><td><b>3일낮~</b></td><td>회의 2분: 본 것 <u>1개 공개</u> + <u>투표</u></td></tr>
+<tr><td><b>4일낮</b></td><td>범인이 직업 추리 1번 (맞히면 그 사람 처형)</td></tr></table>
+<h3 class="rh">꼭 알아둘 것</h3>
+<ul class="ck">
+<li><b>안개</b> 1~2일낮과 밤엔 내 양옆 것만 보여요 (기자는 다 봐요)</li>
+<li><b>밤 정보</b> 양옆이 밤에 고른 것은 다음 날 낮에 보여요</li>
+<li><b>투표</b> 최다 득표 처형 · 동점이나 기권 과반이면 처형 없음 · 나에게도 투표 가능</li>
+<li><b>죽으면</b> 진짜 직업이 공개돼요 (환자는 두 번째 죽을 때) · 나는 모든 직업이 보여요</li>
+<li><b>메모</b> 원탁의 사람을 누르면 나만 보는 메모를 남길 수 있어요</li>
+<li><b>범인 2명</b> 6~7명이면 1~2명 랜덤 · 서로 몰라요</li>
+<li><b>4명 게임</b> 군인은 나오지 않아요</li></ul>
 </div>
 <div class="rp" data-p="2" style="display:none">
-<h3 class="rh">살인 방법과 흔적</h3>
-<table><tr><th>살인 방법</th><th>범인에게 남는 흔적</th></tr>
-<tr><td>목 조르기 (목이 졸려 죽었다)</td><td>저항흔적</td></tr><tr><td>둔기 (둔기에 맞았다)</td><td>피</td></tr><tr><td>칼 (칼에 맞았다)</td><td>피</td></tr><tr><td>독 (독으로 죽었다)</td><td>주사기</td></tr><tr><td>총 (총에 맞았다)</td><td>화약가루</td></tr></table>
-<h3 class="rh">누가 어떤 흔적을 가지나</h3>
-<ul><li><b>범인</b>: 시작할 때 고른 살인 방법의 흔적을 게임 내내 가져요. 지난 게임에서 쓴 방법은 고를 수 없어요.</li>
-<li><b>군인</b>: 항상 범인과 같은 흔적을 가져요 (헷갈리게 만드는 역할).</li>
-<li><b>나머지</b>: 시작할 때 저항흔적·피·주사기·화약가루 중 하나를 랜덤으로 가져요. 그래서 우연히 범인과 같은 흔적일 수도 있어요.</li></ul>
-<h3 class="rh">흔적을 알아내는 방법</h3>
-<ul><li><b>1일낮</b>: 모두 자기 흔적을 말해요. 범인만 다른 흔적으로 거짓말할 수 있어요.</li>
-<li><b>경찰</b>: 밤에 한 명을 몸수색해서 진짜 흔적을 확인해요.</li>
-<li><b>의사</b>: 시신을 검사하면 사인(살인 방법)을 알 수 있어요 → 범인의 흔적을 짐작할 수 있어요. 의사가 있으면 0일낮에 첫 희생자의 사인이 공개돼요.</li></ul>
-<h3 class="rh">추리 팁</h3>
-<ul><li>범인의 흔적을 알았다면, 같은 흔적을 가진 사람은 범인 · 군인 · 우연히 같은 사람 중 하나예요.</li>
-<li>1일낮에 말한 흔적과 경찰이 확인한 흔적이 다르면 그 사람은 범인이에요.</li></ul>
+<h3 class="rh">살인 방법 → 범인 몸의 흔적</h3>
+<table><tr><th>방법</th><th>흔적</th></tr>
+<tr><td>목 조르기</td><td><span class="tr">저항흔적</span></td></tr><tr><td>둔기</td><td><span class="tr">피</span></td></tr><tr><td>칼</td><td><span class="tr">피</span></td></tr><tr><td>독</td><td><span class="tr">주사기</span></td></tr><tr><td>총</td><td><span class="tr">화약가루</span></td></tr></table>
+<h3 class="rh">누가 무슨 흔적?</h3>
+<table><tr><th>사람</th><th>흔적</th></tr>
+<tr><td><span class="tm k">범인</span></td><td>살인 방법의 흔적 (끝까지 그대로)</td></tr>
+<tr><td><span class="tm t">군인</span></td><td>범인과 <u>같은</u> 흔적</td></tr>
+<tr><td>나머지</td><td>4가지 중 랜덤</td></tr></table>
+<h3 class="rh">흔적 알아내기</h3>
+<ul class="ck">
+<li><b>1일낮</b> 모두 자기 흔적을 말해요 (범인만 거짓말)</li>
+<li><b>경찰</b> 몸수색 → 진짜 흔적</li>
+<li><b>의사</b> 시신 검사 → 사인 → 범인 흔적 추리 · 의사가 있으면 0일낮에 사인 공개</li>
+<li><b>팁</b> 말한 흔적 ≠ 경찰이 본 흔적 → 그 사람이 범인!</li></ul>
 </div>
 <div class="rp" data-p="3" style="display:none">
+<table class="jt"><tr><th>직업</th><th>편</th><th>밤에 하는 일</th><th>거짓말</th></tr>
+<tr><td><b>범인</b></td><td><span class="tm k">범인</span></td><td>한 명 죽이기</td><td>O</td></tr>
+<tr><td><b>공범</b></td><td><span class="tm k">범인</span></td><td>없음 (위장)</td><td>O</td></tr>
+<tr><td><b>경찰</b></td><td><span class="tm t">시민</span></td><td>몸수색 → 흔적</td><td>O</td></tr>
+<tr><td><b>군인</b></td><td><span class="tm t">시민</span></td><td>겨누기 (3밤 연속 → 사살), 범인 반격</td><td>O</td></tr>
+<tr><td><b>의사</b></td><td><span class="tm t">시민</span></td><td>살리기 / 사인 검사 / 수술 1번</td><td>X</td></tr>
+<tr><td><b>버스기사</b></td><td><span class="tm t">시민</span></td><td>두 사람 대상 바꾸기</td><td>X</td></tr>
+<tr><td><b>기자</b></td><td><span class="tm t">시민</span></td><td>조사 2번 → 거짓말 가능 여부, 제보</td><td>X</td></tr>
+<tr><td><b>목사</b></td><td><span class="tm t">시민</span></td><td>나와 한 명 대상·자리 바꾸기</td><td>X</td></tr>
+<tr><td><b>환자</b></td><td><span class="tm t">시민</span></td><td>한 명 다음 밤 행동 막기</td><td>O</td></tr>
+<tr><td><b>탐정</b></td><td><span class="tm t">시민</span></td><td>한 명 느낌 힌트</td><td>X</td></tr>
+<tr><td><b>정치인</b></td><td><span class="tm n">중립</span></td><td>투표권 뺏기 (나는 2표)</td><td>O</td></tr>
+<tr><td><b>백수</b></td><td><span class="tm n">중립</span></td><td>범인 찍기</td><td>X</td></tr></table>
+<p class="hint">거짓말 O = 2일낮에 가짜 직업을 말할 수 있어요. 게임 중 "내 정보 → 자세히 보기"에서 내 직업 설명을 볼 수 있어요.</p>
+<h3 class="rh">직업 자세히</h3>
 <ul id="roleList" class="roles"></ul>
 </div>
 <button class="pri" id="bClose">닫기</button>
@@ -232,7 +266,7 @@ function fillAI(){let k=0;while(G.players.length<G.cap){const used=new Set(G.pla
 
 function startGame(){
   fillAI();const N=G.players.length,nk=N>=6&&Math.random()<.5?2:1;
-  const pool=JOBS.filter(j=>j!=='범인'&&!(nk===2&&j==='백수'));
+  const pool=JOBS.filter(j=>j!=='범인'&&!(nk===2&&j==='백수')&&!(N===4&&j==='군인'));
   const roles=shuffle([...Array(nk).fill('범인'),...shuffle(pool).slice(0,N-nk)]);
   G.players.forEach((p,i)=>{Object.assign(p,{role:roles[i],orig:roles[i],alive:true,feed:[],trace:null,claim:null,fake:null,blockNight:-1,usedSurg:false,byKiller:false,cause:null,found:false,polWin:false,hist:0,lastT:null,examined:[],win:false,deaths:0});p.team=teamOf(p.role);if(p.role==='범인')p.fake=rnd(pool.filter(j=>j!=='백수'))});
   G.hist=[];G.started=true;G.day=0;G.board=[];G.pubd=new Set();G.dlog=[];G.method=null;G.steal=null;G.foundFlag=false;G.nq=[];G.tipQ=[];G.tipK={};G.polLost=false;G.center={};G.centerM=null;
