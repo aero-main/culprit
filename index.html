@@ -178,7 +178,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
 <li><b>4명 게임</b> 군인은 나오지 않아요</li>
 <li><b>목사 반격</b> 범인이 목사를 노렸는데 목사가 그 범인을 고르면 범인이 죽어요</li>
 <li><b>목사 + 버스기사</b> 둘이 겹치면 목사가 먼저 바꾸고, 그다음 버스기사가 바꾼 효과가 남아요</li>
-<li><b>밤 결과</b> 능력 결과는 밤이 끝나면 나와요 (버스기사·목사의 영향을 받아요). 기자의 조사만 누르자마자 바로 나와요</li>
+<li><b>밤 결과</b> 밤에 한 능력의 결과(흔적 조사, 기자 조사 등)는 다음 낮이 시작될 때 "내가 본 것"에 한꺼번에 들어와요 (버스기사·목사의 영향을 받아요)</li>
 <li><b>범인 2·3번</b> 살인은 1번 결정대로지만, 2·3번은 각자 고른 사람에게 찾아가요</li>
 <li><b>군인 반격</b> 군인을 찾아간 범인이 죽어요. 여러 범인이 같이 찾아가면 번호가 가장 큰 범인이 대신 죽어요 · 공개 알림은 "범인이 군인에게 당했다" (번호는 비공개)</li>
 <li><b>의사 ↔ 환자</b> 의사가 밤에 환자를 고르거나 환자가 의사를 고르면 서로의 직업을 알게 돼요 · 환자가 의사를 골라도 의사의 행동은 막히지 않아요</li>
@@ -256,7 +256,7 @@ function setPhase(ph,ms){G.phase=ph;G.deadline=NOW()+ms;G.done={};G.tok++;G.dirt
 function later(ms,fn){const tok=G.tok;G.q.push({at:NOW()+ms,fn,tok})}
 function laterBot(p,ms,fn){later(ms,()=>{if(p.ai&&p.alive)fn()})}
 function sysMsg(text,kind){G.board.push({day:G.day,ph:G.phase==='night'?'밤':'낮',kind:kind||'sys',text});G.dirty=true}
-function see(pid,it){it.id=++G.fid;if(it.day==null)it.day=G.day;if(!it.ph)it.ph=G.phase==='night'?'밤':'낮';P(pid).feed.push(it);G.dirty=true}
+function see(pid,it){if(G.phase==='night'&&it.k!=='pick'&&G.nq){if(it.day==null)it.day=G.day;if(!it.ph)it.ph='밤';G.nq.push([pid,it]);return}it.id=++G.fid;if(it.day==null)it.day=G.day;if(!it.ph)it.ph=G.phase==='night'?'밤':'낮';P(pid).feed.push(it);G.dirty=true}
 function neighbors(pid){const al=G.players.filter(q=>q.alive||q.id===pid).sort((a,b)=>a.seat-b.seat);const n=al.length;if(n<2)return[];const i=al.findIndex(q=>q.id===pid);return[...new Set([al[(i-1+n)%n].id,al[(i+1)%n].id])].filter(x=>x!==pid)}
 function near2(pid){const al=G.players.filter(q=>q.alive||q.id===pid).sort((a,b)=>a.seat-b.seat);const n=al.length;const i=al.findIndex(q=>q.id===pid);const st=new Set();const N0=G.players.length;for(const d of(N0<=5?[-1,1]:N0<=7?[-1,-2,1]:[-1,-2,1,2]))st.add(al[((i+d)%n+n)%n].id);st.delete(pid);return[...st]}
 function seeAround(pid,mk){const ns=neighbors(pid);const rs=G.players.filter(q=>q.alive&&q.role==='기자'&&q.id!==pid&&!ns.includes(q.id)&&near2(q.id).includes(pid)).map(q=>q.id);for(const n of[...ns,...rs])see(n,mk())}
