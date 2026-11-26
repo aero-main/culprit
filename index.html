@@ -42,13 +42,15 @@ h1,h2,h3{font-family:"Black Han Sans",sans-serif;font-weight:400;margin:0;line-h
 .boardwrap{flex:1;min-height:0;container-type:size;position:relative;display:flex;align-items:center;justify-content:center}
 #mecard{flex:none;max-height:36%;overflow:auto}
 #act{flex:none;max-height:58%;overflow:auto}
-.tabs{display:flex;gap:6px;flex:none}.tabs button{flex:1;min-height:40px;padding:4px 8px}.tabs button.sel{background:var(--gold);color:#1a1420;border-color:var(--gold);font-weight:700}.tabs .m{display:none}
-#pubs,#feed{flex:1;min-height:0;max-height:none;overflow-y:auto;display:none}
-#game[data-tab=act] #pubs,#game[data-tab=me] #pubs,#game[data-tab=pubs] #pubs,#game[data-tab=feed] #feed{display:flex}
+.tabs{display:flex;gap:6px;flex:none}.tabs button{flex:1;min-height:40px;padding:4px 8px}.tabs button.sel{background:var(--gold);color:#1a1420;border-color:var(--gold);font-weight:700}.tabs{display:none!important}
+#logs{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.lg{display:flex;flex-direction:column;min-height:0;padding:10px 10px 6px;margin:0}.lh{margin:0 0 6px;font-family:"Black Han Sans";font-size:17px;flex:none}
+#pubs,#feed{flex:1;min-height:0;max-height:none;overflow-y:auto}
+.lg .it{font-size:14px;padding:6px 8px}
 @media(max-width:860px){.main{display:flex;flex-direction:column;gap:8px}.left,.right{display:contents}
- .boardwrap{flex:none;height:34dvh;order:1}.tabs{order:2}.tabs .m{display:block}.tabs button{font-size:14px;padding:4px}
+ .boardwrap{flex:none;height:34dvh;order:1}.tabs{order:2;display:flex!important}.tabs button{font-size:14px;padding:4px}
  .pane{order:3;display:none!important;flex:1;min-height:0;max-height:none!important;overflow:auto}
- #game[data-tab=act] #act,#game[data-tab=me] #mecard{display:block!important}#game[data-tab=pubs] #pubs,#game[data-tab=feed] #feed{display:flex!important}
+ #game[data-tab=act] #act,#game[data-tab=me] #mecard{display:block!important}#game[data-tab=log] #logs{display:grid!important;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) minmax(0,1fr)}
  .card{padding:12px}.top h2{font-size:20px}.top{gap:8px}}
 .it .chip{font-size:13px;padding:0 5px}
 .boardbox{position:relative;width:min(100cqw,100cqh);height:min(100cqw,100cqh);border-radius:50%;background:radial-gradient(circle,#2c2238 0%,#18131f 70%);box-shadow:0 0 0 2px #2d2539,0 30px 60px #0008}
@@ -111,9 +113,8 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
     </div>
     <div class="right">
       <div class="card pane" id="act"></div>
-      <div class="tabs"><button data-x="tab" data-v="act" class="m">할 일</button><button data-x="tab" data-v="pubs">공개 게시판</button><button data-x="tab" data-v="feed">내가 본 것</button><button data-x="tab" data-v="me" class="m">내 정보</button></div>
-      <div class="card pane list" id="pubs"></div>
-      <div class="card pane list" id="feed"></div>
+      <div class="tabs"><button data-x="tab" data-v="act">할 일</button><button data-x="tab" data-v="log">게시판 · 본 것</button><button data-x="tab" data-v="me">내 정보</button></div>
+      <div class="pane" id="logs"><div class="card lg"><p class="lh">공개 게시판</p><div class="list" id="pubs"></div></div><div class="card lg"><p class="lh">내가 본 것</p><div class="list" id="feed"></div></div></div>
     </div>
   </div>
 </div>
@@ -479,7 +480,7 @@ function render(){if(!V)return;const pr=V.pr;const key=[V.ph,V.day,V.turn,pr&&pr
   $('#phase').textContent=phaseName()+(V.code&&V.ph==='lobby'?` · 방 코드 ${V.code}`:'');
   const b=$('#banner');b.style.display=V.banner?'block':'none';b.textContent=V.banner;
   const nw=nowText();$('#now').style.display=nw?'block':'none';$('#now').textContent=nw?'지금 할 일 · '+nw:'';
-  $('#game').dataset.tab=TAB;const wide=matchMedia('(min-width:861px)').matches;document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('sel',b.dataset.v===(wide?(TAB==='feed'?'feed':'pubs'):TAB)));
+  $('#game').dataset.tab=TAB;const wide=matchMedia('(min-width:861px)').matches;document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('sel',b.dataset.v===TAB));
   drawBoard();renderAct();renderMe();renderWho();Snd.mood(V.ph==='night');
   $('#pubs').innerHTML=V.board.length?V.board.slice().reverse().map(x=>`<div class="it ${x.kind==='sys'?'sys':x.kind==='tip'?'tip':''}"><span class="d">${x.day?x.day+'일':''}</span><span class="tx">${x.kind==='pub'?`<span data-x="who" data-v="${x.by}" style="cursor:pointer">${chip(x.by)}</span> 공개: `:''}${colz(x.text)}</span></div>`).join(''):'<p class="empty">아직 아무것도 없습니다.</p>';
   const f=V.feed||[],canPub=pr&&pr.k==='meet'&&pr.pubLeft>0,canTip=pr&&pr.tip;
