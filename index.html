@@ -178,6 +178,8 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
 <li><b>4명 게임</b> 군인은 나오지 않아요</li>
 <li><b>목사 반격</b> 범인이 목사를 노렸는데 목사가 그 범인을 고르면 범인이 죽어요</li>
 <li><b>목사 + 버스기사</b> 둘이 겹치면 목사가 먼저 바꾸고, 그다음 버스기사가 바꾼 효과가 남아요</li>
+<li><b>밤 결과</b> 능력 결과는 밤이 끝나면 나와요 (버스기사·목사의 영향을 받아요). 기자의 조사만 누르자마자 바로 나와요</li>
+<li><b>범인 2·3번</b> 살인은 1번 결정대로지만, 2·3번은 각자 고른 사람에게 찾아가요 (군인에게 가면 반격당해요)</li>
 <li><b>의사 ↔ 환자</b> 의사가 밤에 환자를 고르거나 환자가 의사를 고르면 서로의 직업을 알게 돼요</li>
 <li><b>4밤</b> 양옆 대신 지켜볼 1명을 골라요 (안 고르면 가장 가까운 왼쪽 사람)</li>
 <li><b>환자 vs 범인</b> 환자가 범인을 막으면 그 밤엔 범인 모두 살인 못 함 · 대신 범인들이 환자가 누군지 알게 돼요</li>
@@ -313,11 +315,11 @@ function nightSpec(p){const others=alive().filter(q=>q.id!==p.id).map(q=>q.id);
     case '환자':return{targets:others.filter(i=>!(p.lastBlockN===G.day-1&&p.lastBlockT===i)),none:true};
     default:return{targets:others,none:true}}}
 function curSw(x){const A=G.acts,d=G.day;const pas=G.players.find(q=>q.role==='목사'&&A[q.id]&&!A[q.id].none&&q.blockNight!==d);if(pas){const pt=A[pas.id].t;x=x===pas.id?pt:x===pt?pas.id:x}const bus=G.players.find(q=>q.role==='버스기사'&&A[q.id]&&!A[q.id].none&&q.blockNight!==d);if(bus){const a=A[bus.id].t,b=A[bus.id].t2;x=x===a?b:x===b?a:x}return x}
-function dpMeet(p,act){if(act.none||act.t==null)return;const t=act.mode==='exam'||act.mode==='surg'||act.mode==='corpse'?act.t:curSw(act.t);const q=P(t);if(!q)return;
+function dpMeet(p,t){if(t==null)return;const q=P(t);if(!q)return;
   if((p.role==='의사'&&q.role==='환자')||(p.role==='환자'&&q.role==='의사')){const key=Math.min(p.id,q.id)+':'+Math.max(p.id,q.id);G.dpK=G.dpK||{};if(G.dpK[key])return;G.dpK[key]=1;
     see(p.id,{k:'info',text:`[${G.day}밤] ${cn(q.id)}의 직업은 ${q.role}예요! (서로 알게 됐어요)`});see(q.id,{k:'info',text:`[${G.day}밤] ${cn(p.id)}의 직업은 ${p.role}예요! (서로 알게 됐어요)`});H(`${cr(p.id)}와(과) ${cr(q.id)}가 서로의 직업을 알게 됨`)}}
 function instant(p,act){if(act.none)return;const id=p.id,k=G.day,A=G.acts;const r=p.role;
-  if(!['경찰','탐정','기자','백수'].includes(r)&&!(r==='의사'&&act.mode==='exam'))return;
+  if(r!=='기자')return;
   act.done=true;if(p.blockNight===k){res(id,'환자의 방해로 이번 밤 행동이 무효가 되었다.');return}
   const t=curSw(act.t);
   switch(r){
@@ -334,7 +336,7 @@ function nightSubmit(p,a){const sp=nightSpec(p);let act=null;if(G.day===4){if(a.
   else if(sp.methods){if(sp.targets.includes(a.t)&&sp.methods.includes(a.m))act={t:a.t,m:a.m}}
   else if(sp.police&&a.mode==='corpse'&&sp.corpses&&sp.corpses.includes(a.t))act={t:a.t,mode:'corpse'};
   else if(sp.targets.includes(a.t)){act={t:a.t};if(sp.police)act.mode=(a.mode==='job'&&sp.jobAvail)?'job':'trace'}
-  if(!act)return;G.acts[p.id]=act;const n=G.day;if(p.role==='범인'&&(!G.kdec||(p.knum||9)<(P(G.kdec.by).knum||9)))G.kdec={by:p.id,t:act.t};if(p.role==='범인')G.kpre=null;if(p.role==='의사'&&act.mode==='heal'&&act.t===p.id)p.selfHeal=n;if(p.role==='환자'&&!act.none){p.lastBlockT=act.t;p.lastBlockN=n}instant(p,act);dpMeet(p,act);
+  if(!act)return;G.acts[p.id]=act;const n=G.day;if(p.role==='범인'&&(!G.kdec||(p.knum||9)<(P(G.kdec.by).knum||9)))G.kdec={by:p.id,t:act.t};if(p.role==='범인')G.kpre=null;if(p.role==='의사'&&act.mode==='heal'&&act.t===p.id)p.selfHeal=n;if(p.role==='환자'&&!act.none){p.lastBlockT=act.t;p.lastBlockN=n}instant(p,act);
   H(`${cr(p.id)}${p.blockNight===n?' [환자에게 막힘]':''}: `+(G._nd=act.none?'아무것도 안 함':act.t2!=null?`${cn(act.t)}와(과) ${cn(act.t2)}을(를) 바꿈`:act.m?`${cn(act.t)}을(를) ${ro(WN[act.m])} 노림`:act.mode==='heal'?`${cn(act.t)}을(를) 지킴`:act.mode==='surg'?`${cn(act.t)}의 시신을 수술`:act.mode==='exam'?`${cn(act.t)}의 시신을 검사`:`${cn(act.t)}을(를) 고름`));ml(p,'밤 선택: '+G._nd);
   const text=act.none?`[${n}밤] ${cn(p.id)}: 선택 안함`:`[${n}밤] ${cn(p.id)} → ${cn(act.t)}`;
   if(G.day===4){const it0={k:'pick',who:p.id,tgt:act.none?null:act.t,night:n,text,day:n,ph:'밤'};G.n4.push(it0);G.players.filter(q=>q.alive&&q.role==='기자'&&q.id!==p.id&&near2(q.id).includes(p.id)).forEach(q=>see(q.id,Object.assign({},it0)))}else
@@ -373,14 +375,15 @@ function resolveNight(){const k=G.day,A=G.acts,dead=[];
     if(v.role==='범인')nk(v,m);
     else if(v.role==='군인'){const K1=G.players.filter(q=>q.alive&&q.role==='범인').sort((a,b)=>(a.knum||9)-(b.knum||9))[0]||X;nk(K1,'총상');res(v.id,'범인이 나를 노렸다! 반격해서 범인을 쓰러뜨렸다.');H(`군인 반격: 범인 ${K1.knum||''}번 ${cn(K1.id)} 사망`)}
     else if(v.role==='백수'){H(`범인이 백수 ${cn(v.id)}을(를) 노림 → 공범이 됨`);v.role='공범';v.team='K';v.found=false;see(v.id,{k:'info',text:`범인(${G.players.filter(q=>q.role==='범인').map(q=>cn(q.id)).join(', ')})에게 붙잡혀 공범이 되었다. 이제 범인이다.`});G.players.filter(q=>q.role==='범인').forEach(q=>see(q.id,{k:'info',text:`${cn(v.id)}는 백수였다. 공범이 되었다.`}))}
-    else{nk(v,m);if(!v.alive)v.byKiller=true;const tr=traceOf(m);X.trace=tr;G.players.filter(q=>q.role==='군인'&&q.alive).forEach(q=>q.trace=tr)}}
+    else{nk(v,m);if(!v.alive)v.byKiller=true;const tr=traceOf(m);X.trace=tr;G.players.filter(q=>q.role==='군인'&&q.alive).forEach(q=>q.trace=tr)}
+    for(const kx of ks.slice(1)){const v2=P(R[kx]);if(v2&&v2.alive&&v2.role==='군인'&&v2.id!==v.id){const K1=G.players.filter(q=>q.alive&&q.role==='범인').sort((a,b)=>(a.knum||9)-(b.knum||9))[0];if(K1){nk(K1,'총상');res(v2.id,'범인이 나를 찾아왔다! 반격해서 범인을 쓰러뜨렸다.');H(`군인 반격(범인 ${P(kx).knum}번 방문): 범인 ${K1.knum||''}번 ${cn(K1.id)} 사망`)}break}}}
   const sol=G.players.find(q=>q.role==='군인'&&A[q.id]);
   if(sol){if(ok(sol.id)){const t=A[sol.id].t;sol.hist=sol.lastT===t?sol.hist+1:1;sol.lastT=t;
       if(sol.hist>=3){const v=P(sw(t));nk(v,'총상');sol.hist=0;sol.lastT=null;res(sol.id,`${cn(v.id)}을(를) 사살했다.`)}
       else res(sol.id,`${cn(t)}을(를) 겨눴다 (${sol.hist}/3)`)}else{sol.hist=0;sol.lastT=null}}
   for(const id of G.order){if(!ok(id)||A[id].done)continue;const p=P(id),t=R[id];
     switch(p.role){
-      case '경찰':{const q=P(t);if(A[id].mode!=='job'||k<2||p.usedSearch){res(id,`${cn(t)} 몸수색: ${q.trace||'없음'}`,{k:'police',who:t,v:q.trace||'없음'});break}p.usedSearch=true;res(id,`${cn(t)} 조사 결과: 직업은 ${q.role}, 흔적은 ${q.trace||'없음'}`,{k:'pjob',who:t,v:q.role,tr:q.trace});break}
+      case '경찰':{if(A[id].mode==='corpse'){const c=P(A[id].t);res(id,`${cn(c.id)}의 사인: ${MD[c.cause]||(c.cause==='총상'?'총에 맞았다 (군인)':c.cause==='처형'?'투표로 처형됐다':c.cause)}`,{k:'doc',who:c.id,v:c.cause});break}const q=P(t);if(A[id].mode!=='job'||k<2||p.usedSearch){res(id,`${cn(t)} 몸수색: ${q.trace||'없음'}`,{k:'police',who:t,v:q.trace||'없음'});break}p.usedSearch=true;res(id,`${cn(t)} 조사 결과: 직업은 ${q.role}, 흔적은 ${q.trace||'없음'}`,{k:'pjob',who:t,v:q.role,tr:q.trace});break}
       case '탐정':{const r=P(t).role;const h=['범인','군인','경찰'].includes(r)?'범인인거같다':['의사','기자','목사'].includes(r)?'선량해보인다':['버스기사','정치인','공범','환자'].includes(r)?'무서워보인다':'평범해보인다';res(id,`${cn(t)}: ${h}`,{k:'det',who:t,v:h});break}
       case '기자':{p.repCnt=p.repCnt||{};p.repCnt[t]=(p.repCnt[t]||0)+1;const n2=p.repCnt[t];if(n2>=2){const liar=FAKE_OK.includes(P(t).role);res(id,`${cn(t)} 조사 ${n2}번째: ${liar?'거짓말을 할 수 있는 사람이다':'참말만 할 수 있는 사람이다'}`,{k:'liar',who:t,v:liar})}else res(id,`${cn(t)} 조사 1번째: 한 번 더 조사하면 알 수 있다`);break}
       case '백수':{const yes=P(t).role==='범인';if(yes){p.found=true;G.foundFlag=true}res(id,yes?`${cn(t)}! 범인을 찾았다!`:`${cn(t)}는 범인이 아니다.`,{k:'hb',who:t,yes});break}
@@ -391,6 +394,7 @@ function resolveNight(){const k=G.day,A=G.acts,dead=[];
         else{p.examined.push(c.id);res(id,`${cn(c.id)}의 사인: ${MD[c.cause]||(c.cause==='총상'?'총에 맞았다 (군인)':c.cause==='처형'?'투표로 처형됐다':c.cause)}`,{k:'doc',who:c.id,v:c.cause})}break}
     }}
   saved.forEach(i=>H(`🩺 ${cr(i)}가 공격받았지만 의사 덕분에 살아남`));
+  G.players.forEach(p=>{if(!ok(p.id))return;const a=A[p.id];if(p.role==='의사')dpMeet(p,a.mode==='heal'?prot:a.t);else if(p.role==='환자')dpMeet(p,R[p.id]);});
   const savedTxt=saved.length?'\n누군가 습격당했지만 의사 덕분에 살아났다!':'';
   const txt=(dead.length?dead.map(i=>`${nmR(i,'이','가')} 숨진 채 발견되었다.`).join('\n'):'밤사이 아무도 죽지 않았다.')+savedTxt;
   sysMsg(`${k}밤 결과: `+txt.replace(/\n/g,' '),dead.length||saved.length?'death':'sys');
