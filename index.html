@@ -174,15 +174,15 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
 <li><b>투표</b> 표 수가 실시간으로 보이고 바꾸거나 취소할 수 있어요 · 동률이면 아무도 안 죽어요</li>
 <li><b>죽으면</b> 직업은 비공개 (목사만 알아요) · 죽은 나는 모두의 직업이 보여요</li>
 <li><b>메모</b> 원탁의 사람을 누르면 나만 보는 메모와 그 사람 정보가 나와요</li>
-<li><b>범인 수</b> 4~5명 1명 · 6~7명 1~2명 · 8명 이상 2명 (서로 몰라요)</li>
+<li><b>범인 편</b> 4~5명 범인 1명 · 6~7명 1~2명 · 8명 이상 2명 (2명이면 범인 + 보조 1명)</li>
 </ul>
 <details class="more"><summary>세부 규칙 더 보기</summary>
 <p class="mh">범인</p>
 <ul class="ck">
 <li><b>살인</b> 우선순위 범인 → 스파이 → 도둑 → 사기꾼. 가장 앞선 범인은 매 밤 죽일 수 있고, 나머지 범인은 같은 사람을 두 번 노려야 죽여요</li>
-<li><b>범인 2번</b> 6~7명은 스파이, 8명 이상은 스파이·도둑·사기꾼 중 랜덤</li>
+<li><b>범인 편 2명</b> 항상 범인 1명 + 보조 1명 (스파이·도둑·사기꾼·공범·사이비교주 중 랜덤)</li>
 <li><b>백수 → 공범</b> 백수가 범인을 찾거나 범인에게 붙잡히면 공범이 돼요. 백수 출신 공범은 같은 사람을 두 번 노리면 죽여요</li>
-<li><b>공범·사이비교주</b> 처음부터 랜덤으로 나올 수 있어요 (공범 5명 이상, 사이비교주 6명 이상 · 범인 편, 살인 못 함, 범인과 서로 알아요). 사이비교주는 목사와 같은 능력 + 하루 1번 목사의 눈 결과를 골라서 공유</li>
+<li><b>공범·사이비교주</b> 범인 편 보조로 나와요 (살인 못 함, 범인과 서로 알아요). 사이비교주는 목사와 같은 능력 + 하루 1번 목사의 눈 결과를 골라서 공유</li>
 <li><b>공유</b> 범인끼리만 보는 게시판에 한 밤에 1개 공유할 수 있어요</li>
 <li><b>거짓말</b> 1낮 흔적은 범인 1번만 거짓말 가능 · 가짜 직업은 이번 판에 없는 직업</li>
 <li><b>도둑</b> 도둑은 게임당 1번 남의 능력을 훔쳐 다음 밤에 써요 (그 사람은 봉인)</li>
@@ -286,14 +286,15 @@ function fillAI(){let k=0;while(G.players.length<G.cap){const used=new Set(G.pla
 
 function startGame(){
   fillAI();const N=G.players.length,nk=N>=8?2:(N>=6&&Math.random()<.5?2:1);
-  const pool=JOBS.filter(j=>j!=='범인'&&!(nk===2&&j==='백수')&&!(N===4&&j==='군인')&&!(nk<2&&(j==='버스기사'||j==='목사'))).concat(N>=5?['공범']:[]).concat(N>=6?['사이비교주']:[]);
-  const roles=shuffle([...Array(nk).fill('범인'),...shuffle(pool).slice(0,N-nk)]);
-  const fakeUsed=[];G.players.forEach((p,i)=>{Object.assign(p,{role:roles[i],orig:roles[i],alive:true,feed:[],trace:null,claim:null,fake:null,blockNight:-1,usedSurg:false,byKiller:false,cause:null,found:false,polWin:false,hist:0,lastT:null,examined:[],win:false,deaths:0,mylog:[],visits:[],knum:0,kspec:null,strikes:{},usedFake:false,usedSearch:false,usedSteal:false,stolenRole:null,stealNight:-1,sealNight:-1});p.team=teamOf(p.role);if(p.role==='범인'){const ab=JOBS.filter(j=>j!=='범인'&&!roles.includes(j));p.fake=ab.length?rnd(ab):rnd(pool.filter(j=>j!=='백수'));fakeUsed.push(p.fake)}});
+  const pool=JOBS.filter(j=>j!=='범인'&&!(nk===2&&j==='백수')&&!(N===4&&j==='군인')&&!(nk<2&&(j==='버스기사'||j==='목사')));
+  const SUB=nk===2?rnd(['스파이','도둑','사기꾼','공범','사이비교주']):null;
+  const roles=shuffle(['범인',...(SUB?[SUB]:[]),...shuffle(pool).slice(0,N-nk)]).map(r=>['스파이','도둑','사기꾼'].includes(r)?'범인:'+r:r);
+  const fakeUsed=[];G.players.forEach((p,i)=>{const sp0=roles[i].startsWith('범인:')?roles[i].slice(3):null;roles[i]=sp0?'범인':roles[i];Object.assign(p,{role:roles[i],orig:roles[i],_sp:sp0,alive:true,feed:[],trace:null,claim:null,fake:null,blockNight:-1,usedSurg:false,byKiller:false,cause:null,found:false,polWin:false,hist:0,lastT:null,examined:[],win:false,deaths:0,mylog:[],visits:[],knum:0,kspec:null,strikes:{},usedFake:false,usedSearch:false,usedSteal:false,stolenRole:null,stealNight:-1,sealNight:-1});p.team=teamOf(p.role);if(p.role==='범인'){const ab=JOBS.filter(j=>j!=='범인'&&!roles.includes(j));p.fake=ab.length?rnd(ab):rnd(pool.filter(j=>j!=='백수'));fakeUsed.push(p.fake)}});
   G.hist=[];G.started=true;G.day=0;G.board=[];G.pubd=new Set();G.dlog=[];G.method=null;G.steal=null;G.foundFlag=false;G.ftipDay=-1;G.feyeDay=-1;G.hasDoc=G.players.some(p=>p.role==='의사');G.nq=[];G.vq=null;G.tipQ=[];G.tipK={};G.polLost=false;G.center={};G.centerM=null;
   G.centerBy=G.players.filter(p=>p.role==='범인').sort((a,b)=>a.seat-b.seat)[0].id;
-  shuffle(G.players.filter(p=>p.role==='범인')).forEach((p,i)=>{p.knum=nk>=2?i+1:0;p.kspec=p.knum===2?(N>=8?rnd(['스파이','도둑','사기꾼']):'스파이'):null});
+  {const KS=G.players.filter(p=>p.role==='범인').sort((a,b)=>(a._sp?1:0)-(b._sp?1:0));KS.forEach((p,i)=>{p.knum=KS.length>=2?i+1:0;p.kspec=p._sp||null})}
   G.players.filter(p=>p.team==='K').forEach(p=>see(p.id,{k:'info',text:(p.knum?`당신은 ${dn(p)}예요 (범인 ${p.knum}번). 군인을 찾아간 범인은 반격당해 죽어요(여럿이면 번호가 큰 범인이 대신). `:'')+(nk===2?'범인은 2명이에요. 다른 범인이 누군지는 몰라요. 밤에 고르는 대상은 범인끼리 공유되고, 번호가 가장 낮은 범인(1번 → 2번 → 3번)의 결정을 따라요.':'당신은 범인이에요.')+(p.fake?` · 내 가짜 직업은 ${p.fake}`:'')}));
-  setPhase('intro',T_SEC);sysMsg(`이번 게임의 범인은 ${nk}명이에요.`);sysMsg('원 가운데에 한 사람이 있다…');
+  setPhase('intro',T_SEC);sysMsg(nk===2?'이번 게임의 범인 편은 2명이에요 (범인 + 보조 1명).':'이번 게임의 범인은 1명이에요.');sysMsg('원 가운데에 한 사람이 있다…');
   const c=P(G.centerBy);if(c.ai)laterBot(c,1500+Math.random()*2500,()=>hostAct(c.id,{a:'center',m:rnd(METHODS)}));
 }
 function pause(text,ms,next){G.banner=text;setPhase('pause',ms);G.next=next}
