@@ -202,7 +202,8 @@ function doCenter(){const m=G.centerM||rnd(centerOpts());G.method=m;const kt=tra
   H('직업: '+G.players.map(p=>`${cn(p.id)} ${p.role}`).join(', '));H(`범인이 가운데 사람을 ${ro(m)} 죽였다. 살인 방법은 ${ro(m)} 고정, 범인의 흔적은 ${kt}`);H('흔적: '+G.players.map(p=>`${cn(p.id)} ${p.trace}`).join(', '));
   G.players.filter(p=>p.team==='K').forEach(p=>see(p.id,{k:'info',text:`가운데 사람을 ${m}(으)로 죽였다. 이번 게임의 살인 방법은 ${m}(으)로 고정된다.`}));
   sysMsg('원 가운데 사람이 살해당했다. 짙은 안개가 끼고, 모두의 몸에 알 수 없는 흔적이 남았다.');
-  pause('원 가운데 사람이 살해당했다!\n안개가 끼기 시작한다…',6500,()=>startDay(1))}
+  const hasDoc=G.players.some(p=>p.role==='의사');const docLine=hasDoc?`의사가 시신을 살펴봤다: ${ro(m)} 살해당했다.`:'';if(hasDoc){sysMsg('0일 낮 · '+docLine);H('의사 검시 공개: '+ro(m)+' 살해')}
+  pause('원 가운데 사람이 살해당했다!\n'+(hasDoc?docLine+'\n':'')+'안개가 끼기 시작한다…',6500,()=>startDay(1))}
 function startDay(d){G.day=d;G.banner='';
   if(G.foundFlag){G.foundFlag=false;G.players.filter(p=>p.team==='K'&&p.alive).forEach(p=>see(p.id,{k:'info',text:'⚠ 백수가 범인을 찾았습니다'}))}
   if(d<=2){setPhase('fog',T_SEC);sysMsg(d===1?'1일차 낮 (안개): 각자 자신의 흔적을 알린다. 양옆 사람에게만 보인다.':'2일차 낮 (안개): 각자 직업을 밝힌다. 양옆 사람에게만 보인다.');
