@@ -167,7 +167,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
 <ul class="ck">
 <li><b>안개</b> 내 양옆 사람 것만 보여요</li>
 <li><b>밤 결과</b> 다음 낮에 한꺼번에 나와요</li>
-<li><b>투표</b> 전체 표의 <u>절반이 넘는 표</u>를 받아야 처형 · 바꾸기·취소 가능 · 6낮부터는 미선택 불가</li>
+<li><b>투표</b> 전체 표의 <u>절반이 넘는 표</u>를 받아야 처형 · 바꾸기·취소 가능 · 5낮부터는 과반이 아니어도 최다 득표자 처형 (동률은 처형 없음) · 6낮부터는 미선택 불가</li>
 <li><b>죽음</b> 죽은 사람의 직업은 비밀 (목사·사이비교주만 알아요)</li>
 <li><b>메모</b> 원탁의 사람을 누르면 메모하고 정보를 볼 수 있어요</li>
 </ul>
@@ -429,7 +429,7 @@ function tally(){const w={};let ab=0,tot=0;
 function pubable(p,it){return it.who!==p.id&&it.k!=='info'&&!G.pubd.has(p.id+':'+it.id)}
 function doPub(p,it,auto){ml(p,(auto?'자동 공개: ':'공개: ')+it.text);H(`${cr(p.id)} ${auto?'자동 ':''}공개: ${it.text}`);G.pubd.add(p.id+':'+it.id);G.pubN[p.id]=(G.pubN[p.id]||0)+1;G.board.push({day:G.day,kind:'pub',by:p.id,text:(auto?'(자동 공개) ':'')+(it.ph==='낮'?`[${it.day}낮] `:'')+it.text,it});G.dirty=true}
 function endMeet(){alive().forEach(p=>{if(!G.pubN[p.id]){const c=p.feed.filter(it=>pubable(p,it));if(c.length)doPub(p,rnd(c),true)}});const{w,ab,tot}=tally();const ids=Object.keys(w).map(Number).sort((a,b)=>w[b]-w[a]);
-  let win=null;if(ids.length&&w[ids[0]]*2>tot&&(ids.length===1||w[ids[0]]>w[ids[1]]))win=ids[0];
+  let win=null;if(ids.length&&(G.day>=5||w[ids[0]]*2>tot)&&(ids.length===1||w[ids[0]]>w[ids[1]]))win=ids[0];
   const lines=[ids.map(i=>`${cn(i)} ${w[i]}표`).join(', ')+(ab?` · 미선택 ${ab}`:'')||'표 없음'];
   const ex=[];if(G.gallows!=null)ex.push(G.gallows);if(win!=null&&!ex.includes(win))ex.push(win);
   const surv=[];surv.forEach(i=>{P(i).voteSurv=true;H(`${cr(i)} 첫 처형에서 살아남음`)});const exk=ex.filter(i=>!surv.includes(i));
@@ -729,7 +729,7 @@ function renderAct(){const a=$('#act'),pr=V.pr;let h='';
   else if(pr.k==='meet'){h=`<h3>공개 회의 · 투표</h3>`;
     if(pr.vd)h+=`<p style="color:var(--red)">${esc(pr.vd)}</p>`;
     else{if(pr.voted!==undefined&&pr.voted!==null)h+=`<p style="font-weight:700">내 투표: ${pr.voted===-1?'미선택':chip(pr.voted)} <button data-x="unvote" style="min-height:32px;padding:2px 10px;font-size:13px;margin-left:6px">투표 취소</button></p><p class="hint">다른 사람을 고르고 투표하기를 누르면 바뀌어요.</p>`;
-    h+=`<p class="hint">처형할 사람을 고르세요. 미선택이 과반이거나 동률이면 아무도 처형되지 않습니다.</p><div class="tgs">${pr.cands.map(i=>tgBtn(i,S.t===i)).join('')}${V.day>=6?'<p class="hint" style="color:var(--gold)">5밤이 지나서 이제 미선택은 할 수 없어요. 꼭 한 명을 골라야 해요.</p>':`<button class="tg ${S.t===-1?'on':''}" data-x="t" data-v="-1" style="--c:#777">미선택</button>`}</div><button class="pri" data-x="vote" ${S.t==null?'disabled':''}>${pr.voted!==undefined&&pr.voted!==null?'투표 바꾸기':'투표하기'}</button>`}
+    h+=`<p class="hint">${V.day>=5?"처형할 사람을 고르세요. 이제 표를 가장 많이 받은 사람이 처형돼요 (동률이면 없음).":"처형할 사람을 고르세요. 절반이 넘는 표를 받아야 처형돼요. 동률이면 없음."}</p><div class="tgs">${pr.cands.map(i=>tgBtn(i,S.t===i)).join('')}${V.day>=6?'<p class="hint" style="color:var(--gold)">5밤이 지나서 이제 미선택은 할 수 없어요. 꼭 한 명을 골라야 해요.</p>':`<button class="tg ${S.t===-1?'on':''}" data-x="t" data-v="-1" style="--c:#777">미선택</button>`}</div><button class="pri" data-x="vote" ${S.t==null?'disabled':''}>${pr.voted!==undefined&&pr.voted!==null?'투표 바꾸기':'투표하기'}</button>`}
     if(pr.live){const L=pr.live;h+=`<div class="rref" style="margin-top:10px"><p style="color:var(--gold);font-weight:700">실시간 투표 (${L.n}/${L.tot}명 투표)${L.endIn?` · 모두 투표! ${L.endIn}초 뒤 마감`:''}</p>${Object.keys(L.w).length?Object.keys(L.w).sort((a,b)=>L.w[b]-L.w[a]).map(i=>`<div class="row" style="gap:6px;margin:3px 0">${chip(+i)}<div style="flex:1;height:10px;background:#0006;border-radius:6px"><div style="height:100%;width:${Math.round(L.w[i]/Math.max(1,L.tot)*100)}%;background:var(--red);border-radius:6px"></div></div><b>${L.w[i]}표</b></div>`).join(''):'<p class="empty">아직 표가 없어요</p>'}${L.ab?`<p class="hint">미선택 ${L.ab}</p>`:''}</div>`}
     h+=pr.pubDone?`<p class="hint sec">오늘 공개 완료</p>`:`<p class="sec" style="color:var(--gold)">오늘 딱 하나 꼭 공개해야 해요! "내가 본 것"에서 공개 버튼을 누르세요. 안 하면 회의가 끝날 때 랜덤으로 공개돼요.</p>`;
     if(pr.guess)h+=`<div class="sec"><p class="lbl">범인의 직업 추리 (1회): 맞히면 그 사람은 처형대에 오릅니다</p><div class="tgs">${pr.gc.map(i=>tgBtn(i,S.gt===i,'gt')).join('')}</div><div class="row">${JOBS.filter(j=>j!=='범인').map(j=>`<button data-x="gj" data-v="${j}" class="${S.gj===j?'on':''}">${j}</button>`).join('')}</div><button class="pri sec" data-x="guess" ${S.gt!=null&&S.gj?'':'disabled'}>추리하기</button></div>`;
