@@ -56,7 +56,7 @@ h1,h2,h3{font-family:"Black Han Sans",sans-serif;font-weight:400;margin:0;line-h
  .card{padding:12px}.top h2{font-size:20px}.top{gap:8px}}
 .it .chip{font-size:13px;padding:0 5px}
 .boardbox{position:relative;width:min(90cqw,90cqh,460px);height:min(90cqw,90cqh,460px);border-radius:50%;background:radial-gradient(circle,#2c2238 0%,#18131f 70%);box-shadow:0 0 0 2px #2d2539,0 30px 60px #0008}
-#mid{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:46%;max-height:44%;overflow:hidden;display:flex;flex-direction:column;gap:4px;align-items:center;pointer-events:none;z-index:1}#mid .mi{background:#0009;border:1px solid #ffffff22;border-radius:10px;padding:3px 8px;font-size:clamp(10px,2.4cqw,14px);line-height:1.35;text-align:center;animation:pop .5s ease}#mid .mi:first-child{border-color:var(--gold);font-weight:700}#mid .mt{font-size:clamp(9px,2cqw,12px);color:var(--gold);letter-spacing:0}@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
+#mid{display:none!important;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:46%;max-height:44%;overflow:hidden;display:flex;flex-direction:column;gap:4px;align-items:center;pointer-events:none;z-index:1}#mid .mi{background:#0009;border:1px solid #ffffff22;border-radius:10px;padding:3px 8px;font-size:clamp(10px,2.4cqw,14px);line-height:1.35;text-align:center;animation:pop .5s ease}#mid .mi:first-child{border-color:var(--gold);font-weight:700}#mid .mt{font-size:clamp(9px,2cqw,12px);color:var(--gold);letter-spacing:0}@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
 .boardbox svg{position:absolute;inset:0;width:100%;height:100%}
 .fog{position:absolute;inset:-4%;border-radius:50%;pointer-events:none;opacity:0;transition:opacity 1.2s;background:radial-gradient(circle at 30% 40%,#cfc6dd55,transparent 40%),radial-gradient(circle at 70% 60%,#cfc6dd44,transparent 45%),radial-gradient(circle at 50% 85%,#cfc6dd33,transparent 40%);background-size:200% 200%;animation:drift 14s linear infinite;filter:blur(8px)}
 .fog.on{opacity:1}.night .boardbox{background:radial-gradient(circle,#1d1830 0%,#0b0910 70%)}
@@ -66,7 +66,7 @@ h1,h2,h3{font-family:"Black Han Sans",sans-serif;font-weight:400;margin:0;line-h
 #act h3{font-size:22px;margin-bottom:8px}
 .hint{color:var(--dim);font-size:14px;margin:4px 0 10px}
 .tgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:5px;margin:6px 0}
-.tg{border-left:7px solid var(--c);text-align:left;padding:4px 8px;line-height:1.15;min-height:40px;font-size:15px}.dl .tg small{white-space:normal}.metog{background:none;border:none;padding:0;min-height:32px;font-size:13px;color:var(--dim);font-weight:700}#act h3{font-size:20px!important}#act .hint{font-size:13px;margin:2px 0 6px}
+.tg{border-left:7px solid var(--c);text-align:left;padding:4px 8px;line-height:1.15;min-height:40px;font-size:15px}.dl .tg small{white-space:normal}.ftb{flex:1;min-height:34px;padding:2px 8px;font-size:14px;font-weight:700}.ftb.on{background:var(--gold);color:#1a1420;border-color:var(--gold);outline:none}.it.vis{border-left:4px solid #7fd8ff}.metog{background:none;border:none;padding:0;min-height:32px;font-size:13px;color:var(--dim);font-weight:700}#act h3{font-size:20px!important}#act .hint{font-size:13px;margin:2px 0 6px}
 .tg small{display:block;color:var(--dim);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chip{display:inline-block;padding:0 7px;border-radius:6px;background:var(--c);color:#111;font-weight:700;font-size:14px;line-height:1.5}
 .list{max-height:330px;overflow-y:auto;display:flex;flex-direction:column;gap:6px}
@@ -138,7 +138,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
     <div class="right">
       <div class="card pane" id="act"></div>
       <div class="tabs"><button data-x="tab" data-v="act">할 일</button><button data-x="tab" data-v="log">게시판 · 본 것</button><button data-x="tab" data-v="me">내 정보</button></div>
-      <div class="pane" id="logs"><div class="card lg"><p class="lh">공개 게시판</p><div class="list" id="pubs"></div></div><div class="card lg"><p class="lh">내가 본 것</p><div class="list" id="feed"></div></div></div>
+      <div class="pane" id="logs"><div class="card lg"><p class="lh">공개 게시판</p><div class="list" id="pubs"></div></div><div class="card lg"><div class="row lh" style="gap:6px;flex-wrap:nowrap"><button data-x="ftab" data-v="feed" class="ftb" id="ftb1">내가 본 것</button><button data-x="ftab" data-v="vis" class="ftb" id="ftb2">나에게 온 사람</button></div><div class="list" id="feed"></div></div></div>
     </div>
   </div>
 </div>
@@ -257,8 +257,8 @@ function startGame(){
   fillAI();const N=G.players.length,nk=N>=6&&Math.random()<.5?2:1;
   const pool=JOBS.filter(j=>j!=='범인'&&!(nk===2&&j==='백수')&&!(N===4&&j==='군인'));
   const roles=shuffle([...Array(nk).fill('범인'),...shuffle(pool).slice(0,N-nk)]);
-  G.players.forEach((p,i)=>{Object.assign(p,{role:roles[i],orig:roles[i],alive:true,feed:[],trace:null,claim:null,fake:null,blockNight:-1,usedSurg:false,byKiller:false,cause:null,found:false,polWin:false,hist:0,lastT:null,examined:[],win:false,deaths:0,mylog:[]});p.team=teamOf(p.role);if(p.role==='범인')p.fake=rnd(pool.filter(j=>j!=='백수'))});
-  G.hist=[];G.started=true;G.day=0;G.board=[];G.pubd=new Set();G.dlog=[];G.method=null;G.steal=null;G.foundFlag=false;G.nq=[];G.tipQ=[];G.tipK={};G.polLost=false;G.center={};G.centerM=null;
+  G.players.forEach((p,i)=>{Object.assign(p,{role:roles[i],orig:roles[i],alive:true,feed:[],trace:null,claim:null,fake:null,blockNight:-1,usedSurg:false,byKiller:false,cause:null,found:false,polWin:false,hist:0,lastT:null,examined:[],win:false,deaths:0,mylog:[],visits:[]});p.team=teamOf(p.role);if(p.role==='범인')p.fake=rnd(pool.filter(j=>j!=='백수'))});
+  G.hist=[];G.started=true;G.day=0;G.board=[];G.pubd=new Set();G.dlog=[];G.method=null;G.steal=null;G.foundFlag=false;G.nq=[];G.vq=null;G.tipQ=[];G.tipK={};G.polLost=false;G.center={};G.centerM=null;
   G.centerBy=G.players.filter(p=>p.role==='범인').sort((a,b)=>a.seat-b.seat)[0].id;
   G.players.filter(p=>p.team==='K').forEach(p=>see(p.id,{k:'info',text:(nk===2?'범인은 2명이에요. 다른 범인이 누군지는 몰라요. 밤에 고르는 대상은 범인끼리 공유되고, 먼저 "결정"한 범인의 대상이 죽어요.':'당신은 범인이에요.')+(p.fake?` · 내 가짜 직업은 ${p.fake}`:'')}));
   setPhase('intro',T_SEC);sysMsg(`이번 게임의 범인은 ${nk}명이에요.`);sysMsg('원 가운데에 한 사람이 있다…');
@@ -272,7 +272,7 @@ function doCenter(){const m=G.centerM||rnd(centerOpts());G.method=m;const kt=tra
   sysMsg('짙은 안개가 끼고, 모두의 몸에 알 수 없는 흔적이 남았다.');
   const hasDoc=G.players.some(p=>p.role==='의사');const docLine=hasDoc?`가운데 사람은 ${MD[m]}.`:'가운데 사람이 죽었다.';sysMsg('0일낮 · '+docLine,'death');H('0일낮 공개: '+docLine)
   pause(docLine+'\n안개가 끼기 시작한다…',6500,()=>startDay(1))}
-function startDay(d){G.day=d;G.banner='';if(G.nq&&G.nq.length){G.nq.forEach(([x,it])=>see(x,it));G.nq=[]}if(G.tipQ&&G.tipQ.length){G.tipQ.forEach(e=>G.board.push(Object.assign({day:d},e)));G.tipQ=[];G.dirty=true}
+function startDay(d){G.day=d;G.banner='';if(G.nq&&G.nq.length){G.nq.forEach(([x,it])=>see(x,it));G.nq=[]}if(G.vq){const q=G.vq;q.who.forEach(id=>{const p=P(id);(p.visits=p.visits||[]).push({day:q.night,from:q.vis[id]||[]})});G.vq=null;G.dirty=true}if(G.tipQ&&G.tipQ.length){G.tipQ.forEach(e=>G.board.push(Object.assign({day:d},e)));G.tipQ=[];G.dirty=true}
   if(G.foundFlag){G.foundFlag=false;G.players.filter(p=>p.team==='K'&&p.alive).forEach(p=>see(p.id,{k:'info',text:'⚠ 백수가 범인을 찾았습니다'}))}
   if(d<=2){setPhase('fog',T_SEC);sysMsg(d===1?'1일낮 (안개): 각자 자신의 흔적을 알린다. 양옆 사람에게만 보인다.':'2일낮 (안개): 각자 직업을 밝힌다. 양옆 사람에게만 보인다.');
     if(d===1)alive().forEach(p=>{const o=fogOpts(p);if(o.length===1&&o[0]==='없음')G.done[p.id]=1});
@@ -332,6 +332,7 @@ function resolveNight(){const k=G.day,A=G.acts,dead=[];
   const doc=G.players.find(q=>q.role==='의사'&&ok(q.id)&&A[q.id].mode==='heal'),prot=doc?sw(A[doc.id].t):null,saved=[];
   const nk=(p,c)=>{if(!p||!p.alive)return;if(p.id===prot){if(!saved.includes(p.id))saved.push(p.id);return}kill(p,c,'밤',dead)};
   const R={};for(const id of G.order)if(ok(id)&&!['의사','버스기사','목사'].includes(P(id).role))R[id]=sw(A[id].t);
+  {const vis={};for(const id in R){const v=R[id];if(v!=null&&v!==+id)(vis[v]=vis[v]||[]).push(+id)}if(doc&&prot!=null&&prot!==doc.id)(vis[prot]=vis[prot]||[]).push(doc.id);G.vq={night:k,vis,who:alive().map(p=>p.id)}}
   const ks=G.order.filter(id=>P(id).role==='범인'&&ok(id));
   if(ks.length){const best=A[ks[0]].t;
     const ex=ks.find(id=>A[id].t===best),m=A[ex].m,X=P(ex),v=P(sw(best));
@@ -495,7 +496,7 @@ function viewFor(pid){const p=P(pid),now=NOW();
     ps:G.players.map(q=>({id:q.id,n:q.name,col:q.col,seat:q.seat,ai:!!q.ai,away:!!q.away,alive:q.alive!==false,r:G.started&&q.alive===false&&!hidePat(q)?q.role:null})),
     board:G.board.slice(-60).map(b=>({day:b.day,ph:b.ph,kind:b.kind,by:b.by,text:b.text}))};
   if(!G.started)return v;
-  Object.assign(v,{mylog:p.mylog||[],method:p.team==='K'?G.method:null,cause:!p.alive?(hidePat(p)?'환자는 죽은 이유가 비밀이에요. 의사가 수술하면 살아날 수 있어요.':causeText(p.cause)):null,role:p.role,orig:p.orig,trace:p.trace,fake:p.fake,alive:p.alive,turn:G.phase==='night'?G.order[G.ti]:null,nb:neighbors(pid),center:G.center,
+  Object.assign(v,{mylog:p.mylog||[],visits:p.visits||[],method:p.team==='K'?G.method:null,cause:!p.alive?(hidePat(p)?'환자는 죽은 이유가 비밀이에요. 의사가 수술하면 살아날 수 있어요.':causeText(p.cause)):null,role:p.role,orig:p.orig,trace:p.trace,fake:p.fake,alive:p.alive,turn:G.phase==='night'?G.order[G.ti]:null,nb:neighbors(pid),center:G.center,
     mates:knownMates(p),kshare:p.role==='범인'&&G.phase==='night'?{pre:G.kpre&&G.kpre.by!==pid?G.kpre.t:null,dec:G.kdec&&G.kdec.by!==pid?G.kdec.t:null}:null,
     canTip:canTipNow(p),feed:p.feed.map(it=>({id:it.id,day:it.day,ph:it.ph,text:it.text,own:it.who===pid,pubd:G.pubd.has(pid+':'+it.id),k:it.k,who:it.k==='pick'?it.who:undefined,tgt:it.k==='pick'?it.tgt:undefined})),pr:promptFor(p)});
   if(!p.alive&&!hidePat(p))v.ps.forEach(x=>{x.rr=P(x.id).role});v.patWait=!p.alive&&hidePat(p);
@@ -575,7 +576,7 @@ function roleRef(){const r=REF[V.role];return(typeof r==='function'?r():(r||''))
 let wasAlive=null;
 const DRX=/\[?(\d+)일(낮|밤)( 결과)?\]?\s*/;
 function sd(text,day,ph){const m=String(text).match(DRX);if(!m)return[day!=null&&day!==''?day+'일'+(ph||'낮'):'',text];let t=String(text).replace(DRX,'').replace(/^\s*[:·]\s*/,'').replace(/·\s*:\s*/,'· ').replace(/^\(안개\):\s*/,'안개 · ');return[m[1]+'일'+m[2],t]}
-let MEMO={};
+let MEMO={},FTAB='feed';
 document.addEventListener('input',e=>{if(e.target.id==='memoIn'&&WHO!=null&&V){const t=e.target.value.trim().slice(0,10);if(t)MEMO[WHO]=t;else delete MEMO[WHO];drawBoard()}});
 document.addEventListener('keydown',e=>{if(e.target.id==='memoIn'&&e.key==='Enter'){e.target.blur();WHO=null;render()}});
 function showView(v){if(!v.started)MEMO={};const died=v.started&&wasAlive===true&&v.alive===false;wasAlive=v.started?v.alive:null;V=v;recvAt=Date.now();if(died){TAB='act';$('#dmsg').textContent=v.cause||'';$('#deadMod').style.display='flex'}render()}
@@ -606,6 +607,7 @@ function render(){if(!V)return;const pr=V.pr;const key=[V.ph,V.day,V.turn,pr&&pr
   drawBoard();renderAct();renderMe();renderWho();Snd.mood(V.ph==='night');
   const pinF=x=>(x.kind==='death'||x.kind==='tip')&&x.day>=V.day-1;const BO=V.board.filter(pinF).reverse().concat(V.board.filter(x=>!pinF(x)).reverse());$('#pubs').innerHTML=V.board.length?BO.map(x=>`<div class="it ${x.kind==='sys'?'sys':x.kind==='tip'?'tip':x.kind==='death'?'death':''}">${(()=>{const[l,t]=sd(x.text,x.day||'',x.ph);return`<span class="d">${l}</span><span class="tx">${x.kind==='pub'?`<span data-x="who" data-v="${x.by}" style="cursor:pointer">${chip(x.by)}</span> 공개: `:''}${colz(t)}`})()}</span></div>`).join(''):'<p class="empty">아직 아무것도 없습니다.</p>';
   const f=V.feed||[],canPub=pr&&pr.k==='meet'&&pr.pubLeft>0,canTip=V.canTip;
+  $('#ftb1').classList.toggle('on',FTAB!=='vis');$('#ftb2').classList.toggle('on',FTAB==='vis');if(FTAB==='vis'){const vs=V.visits||[];$('#feed').innerHTML=!V.started?'':vs.length?vs.slice().reverse().map(x=>`<div class="it ${x.from.length?'vis':''}"><span class="d">${x.day}일밤</span><span class="tx">${x.from.length?x.from.map(chip).join(' ')+' 이(가) 나에게 왔다':'아무도 오지 않았다'}</span></div>`).join(''):'<p class="empty">밤이 지나면 그 밤에 나에게 온 사람이 여기에 나와요.</p>'}else
   $('#feed').innerHTML=f.length?f.slice().reverse().map(it=>`<div class="it">${(()=>{const[l,t]=sd(it.text,it.day,it.ph);return`<span class="d">${l}</span><span class="tx">${colz(t)}</span>`})()}${!it.own&&!it.pubd&&canPub&&it.k!=='info'?`<button data-x="pub" data-v="${it.id}">공개</button>`:''}${!it.own&&!it.pubd&&canTip&&it.k!=='info'?`<button data-x="tip" data-v="${it.id}">제보</button>`:''}${it.pubd?'<span class="d">공개됨</span>':''}</div>`).join(''):'<p class="empty">아직 본 것이 없습니다.</p>';
   tickTimer()}
 function nowText(){const pr=V.pr;if(V.ph==='lobby')return V.me===0?'사람이 모이면 게임 시작을 눌러요':'방장이 시작하기를 기다려요';
@@ -678,6 +680,7 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-x]');if(!
     case 'pub':send({a:'pub',fid:n});return;
     case 'who':WHO=n;break;case 'memo':MEMO[WHO]=v;WHO=null;break;case 'memox':delete MEMO[WHO];WHO=null;break;case 'memosave':{const t=($('#memoIn').value||'').trim().slice(0,10);if(t)MEMO[WHO]=t;else delete MEMO[WHO];document.activeElement.blur();break}
     case 'metog':MEOPEN=!MEOPEN;try{localStorage.setItem('bm-meopen',MEOPEN?'1':'0')}catch(_){}break;
+    case 'ftab':FTAB=v;break;
     case 'dtog':DOPEN=!DOPEN;break;case 'ltog':LOPEN=!LOPEN;break;case 'whox':if(e.target.closest('#who')&&!e.target.closest('button'))return;WHO=null;break;
     case 'tab':TAB=v;break;
     case 'snd':Snd.toggle();el.textContent=Snd.on?'소리 끄기':'소리 켜기';return;
