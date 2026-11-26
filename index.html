@@ -179,11 +179,12 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
 <li><b>목사 반격</b> 범인이 목사를 노렸는데 목사가 그 범인을 고르면 범인이 죽어요</li>
 <li><b>목사 + 버스기사</b> 둘이 겹치면 목사가 먼저 바꾸고, 그다음 버스기사가 바꾼 효과가 남아요</li>
 <li><b>밤 결과</b> 능력 결과는 밤이 끝나면 나와요 (버스기사·목사의 영향을 받아요). 기자의 조사만 누르자마자 바로 나와요</li>
-<li><b>범인 2·3번</b> 살인은 1번 결정대로지만, 2·3번은 각자 고른 사람에게 찾아가요 (군인에게 가면 반격당해요)</li>
+<li><b>범인 2·3번</b> 살인은 1번 결정대로지만, 2·3번은 각자 고른 사람에게 찾아가요</li>
+<li><b>군인 반격</b> 군인을 찾아간 범인이 죽어요. 여러 범인이 같이 찾아가면 번호가 가장 큰 범인이 대신 죽어요 · 공개 알림은 "범인이 군인에게 당했다" (번호는 비공개)</li>
 <li><b>의사 ↔ 환자</b> 의사가 밤에 환자를 고르거나 환자가 의사를 고르면 서로의 직업을 알게 돼요</li>
 <li><b>4밤</b> 양옆 대신 지켜볼 1명을 골라요 (안 고르면 가장 가까운 왼쪽 사람)</li>
 <li><b>환자 vs 범인</b> 환자가 범인을 막으면 그 밤엔 범인 모두 살인 못 함 · 대신 범인들이 환자가 누군지 알게 돼요</li>
-<li><b>범인 번호</b> 범인이 2명 이상이면 1번·2번… 번호가 있어요. 범인이 군인을 노리면 1번부터 순서대로 반격당해 죽어요</li>
+<li><b>범인 번호</b> 범인이 2명 이상이면 1번·2번… 번호가 있어요. 살인은 번호가 가장 낮은 범인의 결정을 따라요</li>
 <li><b>범인끼리 공유</b> 범인이 2명 이상 살아 있으면 한 밤에 범인 전체 1개만 "내가 본 것"을 범인끼리만 보는 게시판에 공유할 수 있어요</li>
 <li><b>가짜 직업</b> 범인의 가짜 직업은 이번 판에 없는 직업이에요</li>
 <li><b>의사 없는 판</b> 환자도 다른 사람처럼 한 번 죽으면 끝 (목사에게 직업이 보이고, 죽은 뒤 모든 직업이 보여요)</li></ul>
@@ -275,7 +276,7 @@ function startGame(){
   G.hist=[];G.started=true;G.day=0;G.board=[];G.pubd=new Set();G.dlog=[];G.method=null;G.steal=null;G.foundFlag=false;G.hasDoc=G.players.some(p=>p.role==='의사');G.nq=[];G.vq=null;G.tipQ=[];G.tipK={};G.polLost=false;G.center={};G.centerM=null;
   G.centerBy=G.players.filter(p=>p.role==='범인').sort((a,b)=>a.seat-b.seat)[0].id;
   shuffle(G.players.filter(p=>p.role==='범인')).forEach((p,i)=>{p.knum=nk>=2?i+1:0});
-  G.players.filter(p=>p.team==='K').forEach(p=>see(p.id,{k:'info',text:(p.knum?`당신은 범인 ${p.knum}번이에요. 범인이 군인을 노리면 1번 → 2번 → 3번 순서로 반격당해 죽어요. `:'')+(nk===2?'범인은 2명이에요. 다른 범인이 누군지는 몰라요. 밤에 고르는 대상은 범인끼리 공유되고, 번호가 가장 낮은 범인(1번 → 2번 → 3번)의 결정을 따라요.':'당신은 범인이에요.')+(p.fake?` · 내 가짜 직업은 ${p.fake}`:'')}));
+  G.players.filter(p=>p.team==='K').forEach(p=>see(p.id,{k:'info',text:(p.knum?`당신은 범인 ${p.knum}번이에요. 군인을 찾아간 범인은 반격당해 죽어요(여럿이면 번호가 큰 범인이 대신). `:'')+(nk===2?'범인은 2명이에요. 다른 범인이 누군지는 몰라요. 밤에 고르는 대상은 범인끼리 공유되고, 번호가 가장 낮은 범인(1번 → 2번 → 3번)의 결정을 따라요.':'당신은 범인이에요.')+(p.fake?` · 내 가짜 직업은 ${p.fake}`:'')}));
   setPhase('intro',T_SEC);sysMsg(`이번 게임의 범인은 ${nk}명이에요.`);sysMsg('원 가운데에 한 사람이 있다…');
   const c=P(G.centerBy);if(c.ai)laterBot(c,1500+Math.random()*2500,()=>hostAct(c.id,{a:'center',m:rnd(METHODS)}));
 }
@@ -369,14 +370,15 @@ function resolveNight(){const k=G.day,A=G.acts,dead=[];
   {const vis={};for(const id in R){const v=R[id];if(v!=null&&v!==+id)(vis[v]=vis[v]||[]).push(+id)}if(doc&&prot!=null&&prot!==doc.id)(vis[prot]=vis[prot]||[]).push(doc.id);G.vq={night:k,vis,who:alive().map(p=>p.id)}}
   const kBlk=G.order.filter(id=>P(id).role==='범인'&&A[id]&&!A[id].none&&blk.has(id));
   if(kBlk.length){const by=P(kBlk[0]).blockedBy;G.players.filter(q=>q.alive&&q.team==='K').forEach(q=>see(q.id,{k:'info',text:`환자에게 막혀 이번 밤 아무도 죽이지 못했다! 환자는 ${by!=null?cn(by):'?'}이다.`}));H(`환자 ${by!=null?cn(by):'?'}가 범인을 막아 살인 실패 (범인들이 환자를 알게 됨)`)}
+  let solHit=false;
   const ks=kBlk.length?[]:G.order.filter(id=>P(id).role==='범인'&&ok(id)).sort((a,b)=>(P(a).knum||9)-(P(b).knum||9));
   if(ks.length){const best=A[ks[0]].t;
     const ex=ks[0],m=A[ex].m,X=P(ex),v=P(sw(best));
     if(v.role==='범인')nk(v,m);
-    else if(v.role==='군인'){const K1=G.players.filter(q=>q.alive&&q.role==='범인').sort((a,b)=>(a.knum||9)-(b.knum||9))[0]||X;nk(K1,'총상');res(v.id,'범인이 나를 노렸다! 반격해서 범인을 쓰러뜨렸다.');H(`군인 반격: 범인 ${K1.knum||''}번 ${cn(K1.id)} 사망`)}
+    else if(v.role==='군인'){}
     else if(v.role==='백수'){H(`범인이 백수 ${cn(v.id)}을(를) 노림 → 공범이 됨`);v.role='공범';v.team='K';v.found=false;see(v.id,{k:'info',text:`범인(${G.players.filter(q=>q.role==='범인').map(q=>cn(q.id)).join(', ')})에게 붙잡혀 공범이 되었다. 이제 범인이다.`});G.players.filter(q=>q.role==='범인').forEach(q=>see(q.id,{k:'info',text:`${cn(v.id)}는 백수였다. 공범이 되었다.`}))}
     else{nk(v,m);if(!v.alive)v.byKiller=true;const tr=traceOf(m);X.trace=tr;G.players.filter(q=>q.role==='군인'&&q.alive).forEach(q=>q.trace=tr)}
-    for(const kx of ks.slice(1)){const v2=P(R[kx]);if(v2&&v2.alive&&v2.role==='군인'&&v2.id!==v.id){const K1=G.players.filter(q=>q.alive&&q.role==='범인').sort((a,b)=>(a.knum||9)-(b.knum||9))[0];if(K1){nk(K1,'총상');res(v2.id,'범인이 나를 찾아왔다! 반격해서 범인을 쓰러뜨렸다.');H(`군인 반격(범인 ${P(kx).knum}번 방문): 범인 ${K1.knum||''}번 ${cn(K1.id)} 사망`)}break}}}
+    {const vis=ks.filter(kx=>{const q=P(R[kx]);return q&&q.role==='군인'&&q.alive});if(vis.length){const sol=P(R[vis[0]]);const vic=P(vis.slice().sort((a,b)=>(P(b).knum||0)-(P(a).knum||0))[0]);nk(vic,'총상');if(!vic.alive){solHit=true;res(sol.id,'범인이 나를 찾아왔다! 반격해서 범인을 쓰러뜨렸다.');H(`군인 반격: 찾아온 범인 ${vis.map(i=>(P(i).knum||'')+'번').join(',')} 중 ${vic.knum||''}번 ${cn(vic.id)} 사망`)}}}}
   const sol=G.players.find(q=>q.role==='군인'&&A[q.id]);
   if(sol){if(ok(sol.id)){const t=A[sol.id].t;sol.hist=sol.lastT===t?sol.hist+1:1;sol.lastT=t;
       if(sol.hist>=3){const v=P(sw(t));nk(v,'총상');sol.hist=0;sol.lastT=null;res(sol.id,`${cn(v.id)}을(를) 사살했다.`)}
@@ -396,7 +398,8 @@ function resolveNight(){const k=G.day,A=G.acts,dead=[];
   saved.forEach(i=>H(`🩺 ${cr(i)}가 공격받았지만 의사 덕분에 살아남`));
   G.players.forEach(p=>{if(!ok(p.id))return;const a=A[p.id];if(p.role==='의사')dpMeet(p,a.mode==='heal'?prot:a.t);else if(p.role==='환자')dpMeet(p,R[p.id]);});
   const savedTxt=saved.length?'\n누군가 습격당했지만 의사 덕분에 살아났다!':'';
-  const txt=(dead.length?dead.map(i=>`${nmR(i,'이','가')} 숨진 채 발견되었다.`).join('\n'):'밤사이 아무도 죽지 않았다.')+savedTxt;
+  const solTxt=solHit?'\n범인이 군인에게 당했다!':'';
+  const txt=(dead.length?dead.map(i=>`${nmR(i,'이','가')} 숨진 채 발견되었다.`).join('\n'):'밤사이 아무도 죽지 않았다.')+solTxt+savedTxt;
   sysMsg(`${k}밤 결과: `+txt.replace(/\n/g,' '),dead.length||saved.length?'death':'sys');
   pause(`날이 밝았다.\n${txt}`,7500,()=>{if(!checkWin())startDay(k+1)})}
 
