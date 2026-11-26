@@ -181,7 +181,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
 <li><b>밤 결과</b> 능력 결과는 밤이 끝나면 나와요 (버스기사·목사의 영향을 받아요). 기자의 조사만 누르자마자 바로 나와요</li>
 <li><b>범인 2·3번</b> 살인은 1번 결정대로지만, 2·3번은 각자 고른 사람에게 찾아가요</li>
 <li><b>군인 반격</b> 군인을 찾아간 범인이 죽어요. 여러 범인이 같이 찾아가면 번호가 가장 큰 범인이 대신 죽어요 · 공개 알림은 "범인이 군인에게 당했다" (번호는 비공개)</li>
-<li><b>의사 ↔ 환자</b> 의사가 밤에 환자를 고르거나 환자가 의사를 고르면 서로의 직업을 알게 돼요</li>
+<li><b>의사 ↔ 환자</b> 의사가 밤에 환자를 고르거나 환자가 의사를 고르면 서로의 직업을 알게 돼요 · 환자가 의사를 골라도 의사의 행동은 막히지 않아요</li>
 <li><b>4밤</b> 양옆 대신 지켜볼 1명을 골라요 (안 고르면 가장 가까운 왼쪽 사람)</li>
 <li><b>환자 vs 범인</b> 환자가 범인을 막으면 그 밤엔 범인 모두 살인 못 함 · 대신 범인들이 환자가 누군지 알게 돼요</li>
 <li><b>범인 번호</b> 범인이 2명 이상이면 1번·2번… 번호가 있어요. 살인은 번호가 가장 낮은 범인의 결정을 따라요</li>
@@ -391,7 +391,7 @@ function resolveNight(){const k=G.day,A=G.acts,dead=[];
       case '백수':{const yes=P(t).role==='범인';if(yes){p.found=true;G.foundFlag=true}res(id,yes?`${cn(t)}! 범인을 찾았다!`:`${cn(t)}는 범인이 아니다.`,{k:'hb',who:t,yes});break}
       case '목사':{const q=P(A[id].t);[p.seat,q.seat]=[q.seat,p.seat];res(id,`${cn(q.id)}와(과) 이번 밤의 대상을 맞바꾸고, 자리도 바꿨다.`);sysMsg('밤사이 두 사람의 자리가 바뀌었다.');break}
       case '정치인':G.steal={pol:id,t,day:k+1};res(id,`${cn(t)}의 다음 날 투표권을 가져왔다.`);break;
-      case '환자':P(t).blockNight=k+1;P(t).blockedBy=id;res(id,`${cn(t)}의 다음 밤 행동을 막았다.`);break;
+      case '환자':if(P(t).role==='의사'){res(id,`${cn(t)}은(는) 의사라서 행동을 막지 않았다.`);break}P(t).blockNight=k+1;P(t).blockedBy=id;res(id,`${cn(t)}의 다음 밤 행동을 막았다.`);break;
       case '의사':{if(A[id].mode==='heal'){const t2=prot;res(id,saved.includes(t2)?`${cn(t2)}을(를) 지켜냈다! 누군가 노리고 있었다.`:`${cn(t2)}을(를) 지켰다. 아무 일도 없었다.`);break}const c=P(A[id].t);if(A[id].mode==='surg'&&!p.usedSurg){p.usedSurg=true;if(!c.alive&&c.role==='환자'&&c.byKiller){c.alive=true;c.cause=null;c.byKiller=false;G.dlog=G.dlog.filter(d=>d.pid!==c.id);res(id,`수술 성공! ${cn(c.id)}가 살아났다.`);sysMsg(`${josa(cn(c.id),'이','가')} 의사의 수술로 살아났다!`)}else res(id,`${cn(c.id)} 수술 실패. 살릴 수 없었다.`)}
         else{p.examined.push(c.id);res(id,`${cn(c.id)}의 사인: ${MD[c.cause]||(c.cause==='총상'?'총에 맞았다 (군인)':c.cause==='처형'?'투표로 처형됐다':c.cause)}`,{k:'doc',who:c.id,v:c.cause})}break}
     }}
