@@ -287,7 +287,7 @@ function resolveNight(){const k=G.day,A=G.acts,dead=[];
     }}
   saved.forEach(i=>H(`🩺 ${cr(i)}가 공격받았지만 의사 덕분에 살아남`));
   const savedTxt=saved.length?'\n누군가 습격당했지만 의사 덕분에 살아났다!':'';
-  const txt=(dead.length?dead.map(i=>{const p=P(i),c=hidePat(p)?null:p.cause;return `${nmR(i,'이','가')} `+(!c?'숨진 채 발견되었다.':c==='총상'?'총에 맞아 죽은 채 발견되었다.':`${ro(c)} 살해당한 채 발견되었다.`)}).join('\n'):'밤사이 아무도 죽지 않았다.')+savedTxt;
+  const txt=(dead.length?dead.map(i=>`${nmR(i,'이','가')} 숨진 채 발견되었다.`).join('\n'):'밤사이 아무도 죽지 않았다.')+savedTxt;
   sysMsg(`${k}일차 밤 결과: `+txt.replace(/\n/g,' '));
   pause(`날이 밝았다.\n${txt}`,7500,()=>{if(!checkWin())startDay(k+1)})}
 
@@ -417,7 +417,7 @@ function promptFor(p){if(!p.alive)return null;
   }return null}
 function viewFor(pid){const p=P(pid),now=NOW();
   const v={ph:G.phase,code:G.code,cap:G.cap,solo:G.solo,day:G.day,left:Math.max(0,G.deadline-now),me:pid,banner:G.banner||'',started:G.started,
-    ps:G.players.map(q=>({id:q.id,n:q.name,col:q.col,seat:q.seat,ai:!!q.ai,away:!!q.away,alive:q.alive!==false,r:G.started&&q.alive===false&&!hidePat(q)?(q.cause==='총상'?'총에 맞음':q.cause==='처형'?'처형':q.cause):null})),
+    ps:G.players.map(q=>({id:q.id,n:q.name,col:q.col,seat:q.seat,ai:!!q.ai,away:!!q.away,alive:q.alive!==false,r:null})),
     board:G.board.slice(-60).map(b=>({day:b.day,kind:b.kind,by:b.by,text:b.text}))};
   if(!G.started)return v;
   Object.assign(v,{cause:!p.alive?(hidePat(p)?'환자는 죽은 이유가 비밀이에요. 의사가 수술하면 살아날 수 있어요.':causeText(p.cause)):null,role:p.role,orig:p.orig,trace:p.trace,fake:p.fake,alive:p.alive,turn:G.phase==='night'?G.order[G.ti]:null,nb:neighbors(pid),center:G.center,
