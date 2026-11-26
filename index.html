@@ -102,7 +102,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
 </div>
 
 <div id="game" data-tab="act">
-  <div class="top"><h2>범인찾기</h2><span id="phase"></span><button id="bRules2" style="min-height:36px;padding:4px 10px">규칙</button><button data-x="snd" id="bSnd" style="min-height:36px;padding:4px 10px">소리 끄기</button><span id="timer"></span></div>
+  <div class="top"><button data-x="back" aria-label="뒤로가기" style="min-height:36px;padding:4px 10px">← 뒤로</button><h2>범인찾기</h2><span id="phase"></span><button id="bRules2" style="min-height:36px;padding:4px 10px">규칙</button><button data-x="snd" id="bSnd" style="min-height:36px;padding:4px 10px">소리 끄기</button><span id="timer"></span></div>
   <div id="now"></div>
   <div class="main">
     <div class="left">
@@ -118,6 +118,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
   </div>
 </div>
 <div class="mod" id="whoMod" data-x="whox"><div class="card" id="who"></div></div>
+<div class="mod" id="confirm"><div class="card" style="max-width:420px;margin-top:20vh"><p id="cmsg" style="font-size:18px;font-weight:700;margin-top:0"></p><div class="row"><button class="pri" data-x="cyes">나가기</button><button data-x="cno">계속하기</button></div></div></div>
 
 <div class="mod" id="rules"><div class="card">
 <h2 style="font-size:30px;color:var(--red)">게임 규칙</h2>
@@ -171,8 +172,8 @@ function neighbors(pid){const al=G.players.filter(q=>q.alive||q.id===pid).sort((
 function seeAround(pid,mk){const ns=neighbors(pid);const rs=G.players.filter(q=>q.alive&&q.role==='기자'&&q.id!==pid&&!ns.includes(q.id)).map(q=>q.id);for(const n of[...ns,...rs])see(n,mk())}
 
 function newGame(code,name,cap,solo){G={phase:'lobby',code,cap,solo,players:[],board:[],fid:0,q:[],tok:0,dirty:true,started:false,day:0,deadline:0,done:{},pubd:new Set()};addPlayer(name,false,'host')}
-function addPlayer(name,ai,link){if(G.players.length>=G.cap)return null;const i=G.players.length;const p={id:i,name,col:i,seat:i,ai,link,alive:true,feed:[]};G.players.push(p);G.dirty=true;return p}
-function reindex(){G.players.forEach((p,i)=>{p.id=i;p.col=i;p.seat=i});G.dirty=true}
+function addPlayer(name,ai,link){if(G.players.length>=G.cap)return null;const i=G.players.length;const used=new Set(G.players.map(q=>q.col));const p={id:i,name,col:[0,1,2,3,4,5,6].find(c=>!used.has(c)),seat:i,ai,link,alive:true,feed:[]};G.players.push(p);G.dirty=true;return p}
+function reindex(){G.players.forEach((p,i)=>{p.id=i;p.seat=i});G.dirty=true}
 function fillAI(){let k=0;while(G.players.length<G.cap){const used=new Set(G.players.map(p=>p.name));let n=BOTN.find(b=>!used.has(b+' AI'))||('봇'+k);addPlayer(n+' AI',true,null);k++}}
 
 function startGame(){
@@ -188,9 +189,9 @@ function startGame(){
 }
 function pause(text,ms,next){G.banner=text;setPhase('pause',ms);G.next=next}
 const centerOpts=()=>METHODS.filter(m=>m!==G.prevMethod);
-function doCenter(){const m=G.centerM||rnd(centerOpts());G.method=m;
+function doCenter(){const m=G.centerM||rnd(centerOpts());G.method=m;const kt=traceOf(m);G.players.forEach(p=>{p.trace=p.role==='범인'||p.role==='군인'?kt:rnd(TRACES)});
   G.players.filter(p=>p.team==='K').forEach(p=>see(p.id,{k:'info',text:`가운데 사람을 ${m}(으)로 죽였다. 이번 게임의 살인 방법은 ${m}(으)로 고정된다.`}));
-  sysMsg('원 가운데 사람이 살해당했다. 곧 짙은 안개가 끼어 모든 흔적이 사라졌다.');
+  sysMsg('원 가운데 사람이 살해당했다. 짙은 안개가 끼고, 모두의 몸에 알 수 없는 흔적이 남았다.');
   pause('원 가운데 사람이 살해당했다!\n안개가 끼기 시작한다…',6500,()=>startDay(1))}
 function startDay(d){G.day=d;G.banner='';
   if(G.foundFlag){G.foundFlag=false;G.players.filter(p=>p.team==='K'&&p.alive).forEach(p=>see(p.id,{k:'info',text:'⚠ 백수가 범인을 찾았습니다'}))}
@@ -198,8 +199,8 @@ function startDay(d){G.day=d;G.banner='';
     if(d===1)alive().forEach(p=>{const o=fogOpts(p);if(o.length===1&&o[0]==='없음')G.done[p.id]=1});
     alive().forEach(p=>{if(p.ai&&!G.done[p.id]){laterBot(p,2500+Math.random()*8000,()=>botFog(p));if(p.role==='기자')laterBot(p,5000+Math.random()*10000,()=>botTip(p))}})}
   else startMeet(d)}
-function fogOpts(p){if(G.day===1)return p.role==='범인'?['없음',...TRACES]:[p.trace||'없음'];return FAKE_OK.includes(p.role)?JOBS.filter(j=>j!=='범인'):[p.role]}
-function fogDef(p){const o=fogOpts(p);if(G.day===1)return o[0];if(p.fake&&o.includes(p.fake))return p.fake;return o.includes(p.role)?p.role:'백수'}
+function fogOpts(p){if(G.day===1)return p.role==='범인'?TRACES.slice():[p.trace||'없음'];return FAKE_OK.includes(p.role)?JOBS.filter(j=>j!=='범인'):[p.role]}
+function fogDef(p){const o=fogOpts(p);if(G.day===1)return o.includes(p.trace)?p.trace:o[0];if(p.fake&&o.includes(p.fake))return p.fake;return o.includes(p.role)?p.role:'백수'}
 function fogSubmit(p,v){if(!fogOpts(p).includes(v))return;G.done[p.id]=1;G.dirty=true;const c=cn(p.id);
   if(G.day===1){p.said=v;if(v!=='없음')seeAround(p.id,()=>({k:'trace',who:p.id,v,text:`${c} 흔적: ${v}`}))}
   else{p.claim=v;seeAround(p.id,()=>({k:'claim',who:p.id,v,text:`${c}: "내 직업은 ${v}"`}))}}
@@ -297,7 +298,9 @@ function endGame(w){G.winner=w;G.players.forEach(p=>{p.win=w==='P'?!!p.polWin:p.
 function resetLobby(){G.players=G.players.filter(p=>p.ai||p.link);reindex();G.players.forEach(p=>{p.alive=true;p.feed=[];p.away=false});G.prevMethod=G.method;Object.assign(G,{phase:'lobby',started:false,day:0,board:[],banner:'',q:[]});G.tok++;G.dirty=true}
 
 function hostAct(pid,a){const p=P(pid);if(!p||!a)return;
-  if(G.phase==='lobby'){if(pid!==0)return;
+  if(G.phase==='lobby'){if(a.a==='color'){const c=+a.c;if(c>=0&&c<7&&!G.players.some(q=>q.col===c)){p.col=c;G.dirty=true}return}
+    if(pid!==0)return;
+    if(a.a==='shuffle'){const cs=shuffle([0,1,2,3,4,5,6]);G.players.forEach((q,i)=>q.col=cs[i]);sysMsg('색을 섞었어요!');return}
     if(a.a==='cap'){const c=+a.v;if(c>=4&&c<=7&&c>=G.players.length){G.cap=c;G.dirty=true}}
     else if(a.a==='addai'){if(G.players.length<G.cap){const used=new Set(G.players.map(q=>q.name));addPlayer((BOTN.find(b=>!used.has(b+' AI'))||'봇')+' AI',true,null)}}
     else if(a.a==='delai'){const i=G.players.map(q=>q.ai).lastIndexOf(true);if(i>0){G.players.splice(i,1);reindex()}}
@@ -320,9 +323,10 @@ function hostAct(pid,a){const p=P(pid);if(!p||!a)return;
 function seenItems(p){const m=new Map();p.feed.forEach(it=>m.set(it.id,it));G.board.forEach(b=>{if(b.it)m.set(b.it.id,b.it)});return[...m.values()]}
 const nightVic=(n,t)=>G.dlog.some(d=>d.ph==='밤'&&d.day===n&&d.pid===t);
 function sus(p){const s={};alive().forEach(q=>{if(q.id!==p.id)s[q.id]=Math.random()*.8});const add=(w,x)=>{if(s[w]!==undefined)s[w]+=x};const claims={};
-  for(const it of seenItems(p)){const w=it.who;
-    if(it.k==='trace'&&it.v!=='없음')add(w,3);
-    if(it.k==='police'){if(TRACES.includes(it.v))add(w,4);else if(it.v==='없음')add(w,-1)}
+  const SI=seenItems(p);const kt=new Set(SI.filter(it=>it.k==='doc'&&METHODS.includes(it.v)).map(it=>traceOf(it.v)));if(p.team==='K'||p.role==='군인')kt.add(p.trace);
+  for(const it of SI){const w=it.who;
+    if(it.k==='trace'&&TRACES.includes(it.v))add(w,kt.size?(kt.has(it.v)?2.5:-.8):.3);
+    if(it.k==='police'){if(TRACES.includes(it.v))add(w,kt.size?(kt.has(it.v)?4:-1):1.2);else if(it.v==='없음')add(w,-1)}
     if(it.k==='det')add(w,{범인인거같다:2.5,무서워보인다:1,선량해보인다:-1.5}[it.v]||0);
     if(it.k==='pick'&&it.tgt!=null&&nightVic(it.night,it.tgt))add(w,2.5);
     if(it.k==='rep'&&nightVic(it.night,w))it.cs.forEach(c=>add(c,1.5));
@@ -332,12 +336,12 @@ function sus(p){const s={};alive().forEach(q=>{if(q.id!==p.id)s[q.id]=Math.rando
   if(p.team==='K')G.players.forEach(q=>{if(q.team==='K'&&s[q.id]!==undefined)s[q.id]=-99});return s}
 function interest(p,it){if(it.who===p.id||G.pubd.has(p.id+':'+it.id))return 0;
   const isK=w=>P(w)&&P(w).team==='K';let sc=0;
-  if(it.k==='trace')sc=it.v!=='없음'?3:.2;else if(it.k==='police')sc=TRACES.includes(it.v)?4:.8;else if(it.k==='det')sc=it.v==='범인인거같다'?3:it.v==='무서워보인다'?1.5:.5;
+  if(it.k==='trace')sc=1.2;else if(it.k==='police')sc=TRACES.includes(it.v)?4:.8;else if(it.k==='det')sc=it.v==='범인인거같다'?3:it.v==='무서워보인다'?1.5:.5;
   else if(it.k==='pick')sc=(it.tgt!=null&&nightVic(it.night,it.tgt))?3:.3;else if(it.k==='rep')sc=nightVic(it.night,it.who)?2:.5;else if(it.k==='doc')sc=1.5;else if(it.k==='claim')sc=.4;
   if(p.team==='K'&&isK(it.who)&&it.k!=='claim')return 0;if(p.found&&it.k==='hb')return 0;return sc+Math.random()*.5}
 function bestItem(p){let b=null,bs=.6;for(const it of p.feed){const s=interest(p,it);if(s>bs){bs=s;b=it}}return b}
 function botFog(p){const o=fogOpts(p);let v;
-  if(G.day===1)v=p.role==='범인'?(Math.random()<.85?'없음':rnd(TRACES)):o[0];
+  if(G.day===1)v=p.role==='범인'?(Math.random()<.7?rnd(TRACES.filter(t=>t!==p.trace)):p.trace):o[0];
   else if(p.role==='범인')v=p.fake;else if(p.role==='공범')v=Math.random()<.5?'백수':rnd(['의사','목사','기자','탐정']);
   else if(p.role==='정치인')v=Math.random()<.5?'정치인':rnd(['의사','목사','기자']);else v=p.role;
   hostAct(p.id,{a:'fog',v:o.includes(v)?v:fogDef(p)})}
@@ -404,7 +408,7 @@ function send(a){if(iAmHost)hostAct(myLocal,a);else if(hostConn&&hostConn.open)h
 function loadPeer(){return new Promise((ok,no)=>{if(window.Peer)return ok();const s=document.createElement('script');s.src='https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';s.onload=ok;s.onerror=()=>no(new Error('peer'));document.head.appendChild(s)})}
 const mkCode=()=>Array.from({length:4},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random()*32)]).join('');
 function myName(){const n=($('#nm').value||'').trim().slice(0,8);if(!n){$('#mmsg').textContent='이름을 입력해 주세요.';return null}try{localStorage.setItem('bm-name',n)}catch(e){}return n}
-function startHostLoop(){iAmHost=true;myLocal=0;clearInterval(timer);timer=setInterval(tick,200);$('#menu').style.display='none';$('#game').style.display='flex';G.dirty=true;tick()}
+function startHostLoop(){iAmHost=true;myLocal=0;clearInterval(timer);timer=setInterval(tick,200);enterGame();G.dirty=true;tick()}
 function onHostConn(conn){conn.on('data',m=>{if(!m||typeof m!=='object')return;
     if(m.t==='join'){const name=String(m.name||'').trim().slice(0,8)||'손님';
       const back=G.started&&G.players.find(p=>p.away&&p.name===name);
@@ -413,21 +417,32 @@ function onHostConn(conn){conn.on('data',m=>{if(!m||typeof m!=='object')return;
       const p=addPlayer(name,false,conn);if(!p){conn.send({t:'err',m:'방이 가득 찼습니다.'});return}conn._pid=p}
     else if(m.t==='act'&&conn._pid)hostAct(conn._pid.id,m.a)});
   conn.on('close',()=>{const p=conn._pid;if(!p||p.link!==conn)return;p.link=null;
-    if(G.phase==='lobby'){G.players.splice(G.players.indexOf(p),1);reindex()}else if(G.started&&G.phase!=='end'){p.ai=true;p.away=true;sysMsg(`${cn(p.id)}(${p.name}) 연결 끊김 → AI가 대신합니다.`);botNow(p)}G.dirty=true})}
+    if(G.phase==='lobby'){G.players.splice(G.players.indexOf(p),1);reindex()}else if(G.started&&G.phase!=='end'){p.ai=true;p.away=true;sysMsg(p.alive?`${cn(p.id)}(${p.name}) 연결 끊김 → AI가 대신합니다.`:`${cn(p.id)}(${p.name})님이 나갔어요.`);botNow(p)}G.dirty=true})}
 async function hostOnline(){const n=myName();if(!n)return;$('#mmsg').textContent='방을 만드는 중…';
   try{await loadPeer()}catch(e){$('#mmsg').textContent='온라인 모듈을 불러오지 못했습니다. 인터넷 연결을 확인하거나 혼자 하기를 이용하세요.';return}
   const tryOpen=k=>{const code=mkCode();peer=new Peer(PFX+code);
     peer.on('open',()=>{newGame(code,n,+$('#capSel').value,false);startHostLoop()});
     peer.on('connection',onHostConn);
     peer.on('error',e=>{if(e.type==='unavailable-id'&&k<4){peer.destroy();tryOpen(k+1)}else if(!G)$('#mmsg').textContent='방 만들기 실패: '+e.type;else console.warn(e)})};tryOpen(0)}
+let leaving=false;
+function enterGame(){$('#menu').style.display='none';$('#game').style.display='flex';try{history.pushState({g:1},'')}catch(e){}}
+function toMenu(msg){$('#game').style.display='none';$('#menu').style.display='block';['#whoMod','#confirm'].forEach(x=>$(x).style.display='none');$('#mmsg').textContent=msg||'';V=null;S={key:''};WHO=null;TAB='act';$('#banner').style.display='none'}
+function leaveGame(){leaving=true;
+  if(iAmHost){clearInterval(timer);timer=null;const g=G;if(g)g.players.forEach(p=>{if(p.link&&p.link!=='host'&&p.link.open){try{p.link.send({t:'err',m:'방장이 방을 나갔어요.'})}catch(e){}}});const pr=peer;setTimeout(()=>{try{pr&&pr.destroy()}catch(e){}},400);peer=null;G=null;iAmHost=false}
+  else{try{hostConn&&hostConn.close()}catch(e){}try{peer&&peer.destroy()}catch(e){}hostConn=null;peer=null}
+  toMenu();setTimeout(()=>leaving=false,1500)}
+function askLeave(){if(!V){toMenu();return}const others=iAmHost&&G&&!G.solo&&G.players.some(p=>p.link&&p.link!=='host')&&V.ph!=='end';const mid=V.started&&V.ph!=='end'&&V.alive;
+  const msg=others?'방장이 나가면 모든 사람의 게임이 끝나요. 나갈까요?':mid?(iAmHost?'게임을 그만두고 나갈까요?':'게임 중에 나가면 AI가 대신해요. 나갈까요?'):'';
+  if(!msg){leaveGame();return}$('#cmsg').textContent=msg;$('#confirm').style.display='flex'}
+addEventListener('popstate',()=>{if($('#game').style.display==='flex'){try{history.pushState({g:1},'')}catch(e){}askLeave()}});
 function solo(){const n=myName();if(!n)return;newGame('',n,+$('#capSel').value,true);startHostLoop()}
 async function join(){const n=myName();if(!n)return;const code=($('#code').value||'').trim().toUpperCase();if(code.length!==4){$('#mmsg').textContent='방 코드 4자리를 입력하세요.';return}
   $('#mmsg').textContent='접속 중…';try{await loadPeer()}catch(e){$('#mmsg').textContent='온라인 모듈을 불러오지 못했습니다.';return}
   peer=new Peer();peer.on('error',e=>{$('#mmsg').textContent=e.type==='peer-unavailable'?'그 코드의 방이 없습니다.':'접속 오류: '+e.type});
   peer.on('open',()=>{hostConn=peer.connect(PFX+code,{reliable:true});
-    hostConn.on('open',()=>{hostConn.send({t:'join',name:n});$('#menu').style.display='none';$('#game').style.display='flex'});
-    hostConn.on('data',m=>{if(m&&m.t==='view')showView(m.v);else if(m&&m.t==='err'){$('#menu').style.display='block';$('#game').style.display='none';$('#mmsg').textContent=m.m}});
-    hostConn.on('close',()=>{$('#banner').style.display='block';$('#banner').textContent='방장과 연결이 끊어졌습니다. 같은 이름으로 다시 참가하면 이어서 할 수 있습니다.'})})}
+    hostConn.on('open',()=>{hostConn.send({t:'join',name:n});enterGame()});
+    hostConn.on('data',m=>{if(m&&m.t==='view')showView(m.v);else if(m&&m.t==='err'){leaving=true;try{peer.destroy()}catch(e){}toMenu(m.m);setTimeout(()=>leaving=false,1500)}});
+    hostConn.on('close',()=>{if(leaving||!V)return;$('#banner').style.display='block';$('#banner').textContent='방장과 연결이 끊어졌습니다. 같은 이름으로 다시 참가하면 이어서 할 수 있습니다.'})})}
 
 /* ================= CLIENT UI ================= */
 let S={key:''};
@@ -474,17 +489,19 @@ function renderAct(){const a=$('#act'),pr=V.pr;let h='';
   if(V.ph==='lobby'){const host=V.me===0;
     h=`<h3>${V.solo?'혼자 하기':'대기실'}</h3>`;
     if(!V.solo&&V.code){const link=location.origin+location.pathname+'?room='+V.code;h+=`<p>방 코드 <b style="font-size:28px;letter-spacing:4px;color:var(--gold)">${V.code}</b></p><p class="hint">친구에게 코드나 링크를 보내 주세요. 들어온 순서대로 색이 정해집니다.</p><div class="row"><input readonly value="${esc(link)}" id="lnk"><button data-x="copy">링크 복사</button></div>`}
-    if(host){h+=`<div class="row sec"><label class="lbl" for="cap2" style="margin:0">인원</label><select id="cap2">${[4,5,6,7].map(c=>`<option ${c===V.cap?'selected':''} ${c<V.ps.length?'disabled':''}>${c}</option>`).join('')}</select><button data-x="addai">AI 추가</button><button data-x="delai">AI 빼기</button></div>
+    if(host){h+=`<div class="row sec"><label class="lbl" for="cap2" style="margin:0">인원</label><select id="cap2">${[4,5,6,7].map(c=>`<option ${c===V.cap?'selected':''} ${c<V.ps.length?'disabled':''}>${c}</option>`).join('')}</select><button data-x="shuffle">색 섞기</button><button data-x="addai">AI 추가</button><button data-x="delai">AI 빼기</button></div>
       <p class="hint">빈자리는 시작할 때 AI로 채워집니다.</p><button class="pri" data-x="start">게임 시작 (${V.ps.length}명 + AI ${V.cap-V.ps.length}명)</button>`}
-    else h+='<p class="hint">방장이 게임을 시작하기를 기다리는 중…</p>';a.innerHTML=h;return}
+    else h+='<p class="hint">방장이 게임을 시작하기를 기다리는 중…</p>';
+    h+=`<p class="lbl sec">내 색 고르기</p><div class="tgs">${COLORS.map(([cn2,cc],i)=>{const o=V.ps.find(q=>q.col===i);const mine=o&&o.id===V.me;return`<button class="tg ${mine?'on':''}" data-x="color" data-v="${i}" style="--c:${cc}" ${o&&!mine?'disabled':''}>${cn2}<small>${o?esc(o.n):'비어 있음'}</small></button>`}).join('')}</div>`;
+    a.innerHTML=h;return}
   if(V.ph==='end'){const w={T:'시민 승리!',K:'범인 승리!',P:'정치인 승리!',D:'무승부'}[V.end.w];
     h=`<h3 style="color:var(--gold);font-size:30px">${w}</h3><p>${V.end.rs.find(r=>r.id===V.me).win?'<b style="color:var(--gold)">당신은 승리했습니다.</b>':'당신은 패배했습니다.'}</p><table><tr><th>색</th><th>직업</th><th>결과</th></tr>${V.end.rs.map(r=>`<tr><td>${chip(r.id)} ${esc(V.ps[r.id].n)}</td><td>${esc(r.role)}${r.orig!==r.role?' (원래 '+esc(r.orig)+')':''}</td><td>${r.win?'승리':'패배'}${r.alive?'':' · 사망'}</td></tr>`).join('')}</table>`;
     h+=V.me===0?`<button class="pri sec" data-x="again">다시 하기</button>`:'<p class="hint sec">방장이 다시 하기를 누르면 새 게임이 시작됩니다.</p>';a.innerHTML=h;return}
-  if(!V.alive){a.innerHTML=`<h3>당신은 사망했습니다</h3>${V.cause?`<p style="color:#ff6b76;font-weight:700;font-size:18px">죽은 이유: ${esc(V.cause)}</p>`:''}<p class="hint">끝까지 지켜보세요. 공개 게시판은 계속 보입니다.</p>`;return}
+  if(!V.alive){a.innerHTML=`<h3>당신은 사망했습니다</h3>${V.cause?`<p style="color:#ff6b76;font-weight:700;font-size:18px">죽은 이유: ${esc(V.cause)}</p>`:''}<p class="hint">끝까지 지켜보거나, 나갈 수 있어요.</p><button class="pri" data-x="leave">게임 나가기</button>`;return}
   if(!pr||pr.k==='wait'){h=`<h3>${V.ph==='night'?'밤':'잠시만요'}</h3><p class="hint">${V.ph==='night'&&V.turn!=null?`${col(V.turn)[0]}의 차례입니다. 선택은 그 사람의 양옆에게만 보입니다.`:V.ph==='intro'?'범인이 가운데 사람을 어떻게 죽일지 고르는 중…':'진행 중…'}</p>`;a.innerHTML=h;return}
-  if(pr.k==='center'){h=`<h3>가운데 사람을 죽일 방법</h3><p class="hint">고른 방법은 이번 게임 내내 바꿀 수 없습니다. 이번 살인의 흔적은 안개에 지워집니다.</p><div class="row">${pr.ms.map(m=>`<button data-x="center" data-v="${m}">${m}</button>`).join('')}</div>`}
+  if(pr.k==='center'){h=`<h3>가운데 사람을 죽일 방법</h3><p class="hint">고른 방법은 이번 게임 내내 바꿀 수 없습니다. 이 방법의 흔적이 계속 내 몸에 남아요. (군인도 같은 흔적을 가져요)</p><div class="row">${pr.ms.map(m=>`<button data-x="center" data-v="${m}">${m}</button>`).join('')}</div>`}
   else if(pr.k==='fog'){h=`<h3>${pr.kind==='trace'?'내 흔적 알리기':'내 직업 밝히기'}</h3>`;
-    if(pr.done)h+=pr.kind==='trace'?'<p class="hint">내 몸에는 흔적이 없어요. 기다려요.</p>':'<p class="hint">선택 완료. 다른 사람을 기다리는 중…</p>';
+    if(pr.done)h+=pr.kind==='trace'?'<p class="hint">흔적을 알렸어요. 기다려요.</p>':'<p class="hint">선택 완료. 다른 사람을 기다리는 중…</p>';
     else{h+=`<p class="hint">${pr.kind==='trace'?(pr.opts.length>1?'범인은 흔적을 고를 수 있습니다.':'나의 실제 흔적이 알려집니다.'):(pr.opts.length>1?'거짓 직업을 말할 수 있습니다.':'진짜 직업만 말할 수 있습니다.')} 양옆 사람에게만 보입니다.</p><div class="row">${pr.opts.map(o=>`<button data-x="fog" data-v="${o}" class="${o===pr.def?'pri':''}">${o}</button>`).join('')}</div>`}
     if(pr.tip)h+='<p class="hint sec">기자: 아래 "내가 본 것"에서 제보할 메시지를 하나 고를 수 있습니다.</p>'}
   else if(pr.k==='night'){const L={범인:'죽일 사람과 방법',경찰:'몸수색할 사람',군인:'겨눌 사람 (같은 사람 3밤 연속이면 사살)',의사:'살릴 사람(오늘 밤 범인에게서 지킴), 또는 살펴볼 시신',버스기사:'서로 바꿀 두 색',백수:'범인이라고 생각하는 사람',기자:'누구와 접촉했는지 알아볼 사람',목사:'이번 밤 나와 대상을 맞바꿀 사람',정치인:'투표권을 빼앗을 사람',환자:'다음 밤 행동을 막을 사람',탐정:'힌트를 얻을 사람',공범:'아무나 (능력 없음, 위장용)'};
@@ -512,7 +529,11 @@ setInterval(tickTimer,200);
 document.addEventListener('click',e=>{const el=e.target.closest('[data-x]');if(!el||!V)return;const x=el.dataset.x,v=el.dataset.v,pr=V.pr;const n=v!==undefined&&v!==''&&!isNaN(+v)?+v:v;
   switch(x){
     case 'copy':{const i=$('#lnk');try{navigator.clipboard.writeText(i.value).then(()=>{el.textContent='복사됨'},()=>{i.select()})}catch(_){i.select()}return}
-    case 'addai':case 'delai':case 'start':case 'again':send({a:x});return;
+    case 'addai':case 'delai':case 'start':case 'again':case 'shuffle':send({a:x});return;
+    case 'color':send({a:'color',c:n});return;
+    case 'back':case 'leave':askLeave();return;
+    case 'cyes':leaveGame();return;
+    case 'cno':$('#confirm').style.display='none';return;
     case 'center':send({a:'center',m:v});return;
     case 'fog':send({a:'fog',v});return;
     case 'pub':send({a:'pub',fid:n});return;
