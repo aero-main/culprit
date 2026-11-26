@@ -172,7 +172,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
 <li><b>밤 정보</b> 양옆이 밤에 고른 것은 다음 날 낮에 보여요</li>
 <li><b>투표</b> 최다 득표 처형 · 동점이나 기권 과반이면 처형 없음 · 나에게도 투표 가능</li>
 <li><b>범인 목숨 2개</b> 2밤이 지난 뒤(3낮부터)에는 범인이 투표로 2번 뽑혀야 죽어요. 처음 뽑히면 "살아남았다"고 모두에게 알려져요</li>
-<li><b>죽으면</b> 진짜 직업이 공개돼요 (환자는 두 번째 죽을 때) · 나는 모든 직업이 보여요</li>
+<li><b>죽으면</b> 죽은 사람의 직업은 비공개예요 (<b>목사</b>만 알 수 있어요) · 죽은 나는 모든 직업이 보여요 (환자는 두 번째 죽을 때)</li>
 <li><b>메모</b> 원탁의 사람을 누르면 나만 보는 메모를 남길 수 있어요</li>
 <li><b>범인 2명</b> 6~7명이면 1~2명 랜덤, 8명 이상이면 항상 2명 · 서로 몰라요</li>
 <li><b>4명 게임</b> 군인은 나오지 않아요</li></ul>
@@ -217,7 +217,7 @@ const DESC={범인:'밤마다 한 명을 죽여요.',
 버스기사:'두 사람의 대상을 바꿔요.',
 백수:'범인을 찍어요. 맞히면 범인이 돼요.',
 기자:'모두의 말을 봐요. 낮·밤 한 번씩 몰래 제보해요 (밤 제보는 다음 날 공개, 죽어도 공개). 같은 사람을 두 번 조사하면 거짓말할 수 있는 사람인지 참말만 하는 사람인지 알아요.',
-목사:'나와 한 사람의 대상과 자리를 바꿔요 (양옆도 바뀌어요).',
+목사:'나와 한 사람의 대상과 자리를 바꿔요 (양옆도 바뀌어요). 죽은 사람의 직업을 알 수 있어요.',
 정치인:'남의 투표권을 뺏어요. 투표로 뽑히면 혼자 이겨요. 범인이 모두 죽어 시민이 이기면 져요.',
 환자:'한 명의 다음 밤 행동을 막아요 (같은 사람을 연속으로는 못 막아요).',
 탐정:'한 명의 느낌 힌트를 받아요.',
@@ -318,14 +318,14 @@ function nightTimeout(){const p=P(G.order[G.ti]);const sp=nightSpec(p);
   else nightSubmit(p,{t:rnd(sp.targets)})}
 function traceOf(m){return m==='교살'?'저항흔적':(m==='타살'||m==='칼')?'피':m==='독'?'주사기':'화약가루'}
 const hidePat=p=>p.role==='환자'&&(p.deaths||0)<2;
-const shownRole=i=>hidePat(P(i))?'':P(i).role;
+const shownRole=i=>'';
 const nmR=(i,a,b)=>{const r=shownRole(i),w=r||cn(i);return cn(i)+(r?`(${r})`:'')+josa(w,a,b).slice(w.length)};
 const causeText=c=>{if(!c)return null;if(c==='처형')return'투표로 처형됐어요.';if(c==='총상')return'군인의 총에 맞아 죽었어요.';return MD[c]?`범인에게 당했어요: ${MD[c]}.`:c};
 const ro=w=>{const k=w.charCodeAt(w.length-1),j=(k-0xAC00)%28;return w+(j===0||j===8?'로':'으로')};
 function ml(p,t){(p.mylog=p.mylog||[]).push({day:G.day,ph:G.phase==='night'?'밤':'낮',text:t});G.dirty=true}
 function H(t){if(!G.hist)G.hist=[];const lb=G.day===0?'시작':`${G.day}${G.phase==='night'?'밤':'낮'}`;G.hist.push({lb,t})}
 const cr=i=>`${cn(i)}(${P(i).role})`;
-function kill(p,cause,ph,list){if(!p||!p.alive)return;H(`💀 ${cr(p.id)} 사망 — ${cause==='처형'?'투표로 처형':cause==='총상'?'군인의 총':(MD[cause]||cause)}`);p.alive=false;p.deaths=(p.deaths||0)+1;p.cause=cause;G.dlog.push({pid:p.id,day:G.day,ph});if(list)list.push(p.id)}
+function kill(p,cause,ph,list){if(!p||!p.alive)return;if(!(p.role==='환자'&&(p.deaths||0)<1))G.players.filter(q=>q.alive&&q.role==='목사'&&q!==p).forEach(q=>see(q.id,{k:'info',text:`목사의 눈: ${cn(p.id)}의 직업은 ${josa(p.role,"이었다","였다")}`}));H(`💀 ${cr(p.id)} 사망 — ${cause==='처형'?'투표로 처형':cause==='총상'?'군인의 총':(MD[cause]||cause)}`);p.alive=false;p.deaths=(p.deaths||0)+1;p.cause=cause;G.dlog.push({pid:p.id,day:G.day,ph});if(list)list.push(p.id)}
 function res(pid,text,extra){H(`${cr(pid)} 결과: ${text}`);see(pid,Object.assign({k:'res',text:`[${G.day}밤 결과] ${text}`},extra||{}))}
 function resolveNight(){const k=G.day,A=G.acts,dead=[];
   if(G.day===4&&G.n4){for(const wid in G.watch){const t=G.watch[wid];if(P(+wid).role==='기자')continue;G.n4.filter(x=>x.who===t).forEach(x=>G.nq.push([+wid,Object.assign({},x)]))}}
@@ -501,13 +501,13 @@ function promptFor(p){if(!p.alive)return null;
   }return null}
 function viewFor(pid){const p=P(pid),now=NOW();
   const v={ph:G.phase,code:G.code,cap:G.cap,solo:G.solo,day:G.day,left:Math.max(0,G.deadline-now),me:pid,banner:G.banner||'',started:G.started,
-    ps:G.players.map(q=>({id:q.id,n:q.name,col:q.col,seat:q.seat,ai:!!q.ai,away:!!q.away,alive:q.alive!==false,r:G.started&&q.alive===false&&!hidePat(q)?q.role:null})),
+    ps:G.players.map(q=>({id:q.id,n:q.name,col:q.col,seat:q.seat,ai:!!q.ai,away:!!q.away,alive:q.alive!==false,r:null})),
     board:G.board.slice(-60).map(b=>({day:b.day,ph:b.ph,kind:b.kind,by:b.by,text:b.text}))};
   if(!G.started)return v;
   Object.assign(v,{usedSearch:!!p.usedSearch,mylog:p.mylog||[],visits:p.visits||[],method:p.team==='K'?G.method:null,cause:!p.alive?(hidePat(p)?'환자는 죽은 이유가 비밀이에요. 의사가 수술하면 살아날 수 있어요.':causeText(p.cause)):null,role:p.role,orig:p.orig,trace:p.trace,fake:p.fake,alive:p.alive,turn:G.phase==='night'?G.order[G.ti]:null,nb:neighbors(pid),center:G.center,
     mates:knownMates(p),kshare:p.role==='범인'&&G.phase==='night'?{pre:G.kpre&&G.kpre.by!==pid?G.kpre.t:null,dec:G.kdec&&G.kdec.by!==pid?G.kdec.t:null}:null,
     canTip:canTipNow(p),feed:p.feed.map(it=>({id:it.id,day:it.day,ph:it.ph,text:it.text,own:it.who===pid,pubd:G.pubd.has(pid+':'+it.id),k:it.k,who:it.k==='pick'?it.who:undefined,tgt:it.k==='pick'?it.tgt:undefined})),pr:promptFor(p)});
-  if(!p.alive&&!hidePat(p))v.ps.forEach(x=>{x.rr=P(x.id).role});v.patWait=!p.alive&&hidePat(p);
+  if(!p.alive&&!hidePat(p))v.ps.forEach(x=>{x.rr=P(x.id).role});else if(p.alive&&p.role==='목사')v.ps.forEach(x=>{const q=P(x.id);if(!q.alive&&!hidePat(q))x.rr=q.role});v.patWait=!p.alive&&hidePat(p);
   if(G.phase==='end')v.end={hist:G.hist||[],why:G.endWhy,w:G.winner,rs:G.players.map(q=>({id:q.id,role:q.role,orig:q.orig,win:q.win,alive:q.alive,why:q.alive?null:causeText(q.cause)}))};
   return v}
 
@@ -575,7 +575,7 @@ const REF={
 의사:'<p>모드: 살리기(자기 자신은 연속 불가) / 사인 검사 / 수술(게임당 1번, 범인에게 죽은 환자만 살아남).</p><p>사인으로 범인의 흔적을 알 수 있어요:</p>'+TRT,
 군인:()=>'<p>내 흔적: <b>'+(V.trace||'-')+'</b> (범인과 같은 흔적)</p><p>같은 사람을 3밤 연속 겨누면 쏴요. 범인이 나를 노리면 범인이 죽어요.</p>',
 버스기사:'<p>두 사람을 고르면 그 밤 두 사람을 노린 행동이 전부 서로 바뀌어요. 범인의 공격이 범인 자신에게 가면 범인이 죽어요. 내 양옆에는 첫 번째 색만 보여요.</p>',
-목사:'<p>고른 사람과 그 밤의 대상과 자리를 맞바꿔요. 자리가 바뀌면 양옆 사람도 바뀌어요.</p>',
+목사:'<p>고른 사람과 그 밤의 대상과 자리를 맞바꿔요. 자리가 바뀌면 양옆 사람도 바뀌어요.</p><p>누가 죽으면 그 사람의 진짜 직업이 나에게만 보여요 (원탁 자리 밑 노란 글씨). 환자는 두 번째 죽었을 때.</p>',
 환자:'<p>막은 사람의 다음 밤 행동이 무효가 돼요. 같은 사람은 연속으로 못 막아요. 범인에게 죽으면 의사의 수술로 살아날 수 있어요.</p>',
 정치인:'<p>빼앗은 투표권은 다음 날 나에게 와서 2표가 돼요. 범인이 살아 있을 때 투표로 처형되면 혼자 승리!</p>',
 백수:'<p>범인을 맞히면 범인이 되고, 끝까지 살아남으면 범인과 함께 승리. 범인에게 노려지면 공범이 돼요.</p>',
@@ -717,12 +717,12 @@ const RDESC={범인:'[범인] 밤마다 한 명을 죽여요. 3낮부터는 투�
 버스기사:'[시민] 밤마다 두 사람을 골라 바꿔요. 그 밤 두 사람을 노린 모든 행동이 서로 바뀌어요. 범인의 공격이 범인 자신에게 가면 범인이 죽어요.',
 백수:'[중립] 밤마다 범인이라고 생각하는 사람을 찍어요. 맞히면 범인이 되고(범인에게는 색 없이 "백수가 범인을 찾았습니다"가 알려져요), 못 찾으면 시민 편이에요. 범인이 노리면 공범이 돼요.',
 기자:'[시민] 모든 사람의 말과 선택을 봐요. 낮에 한 번, 밤에 한 번 몰래 제보할 수 있어요(밤 제보는 다음 날 공개, 죽어도 공개). 밤마다 한 명을 조사해서, 같은 사람을 두 번 조사하면 거짓말할 수 있는 사람인지 참말만 하는 사람인지 알아요.',
-목사:'[시민] 밤마다 한 명과 대상과 자리를 맞바꿔요. 나를 노린 행동은 그 사람에게, 그 사람을 노린 행동은 나에게 오고, 원탁 자리도 실제로 바뀌어요.',
+목사:'[시민] 밤마다 한 명과 대상과 자리를 맞바꿔요. 나를 노린 행동은 그 사람에게, 그 사람을 노린 행동은 나에게 오고, 원탁 자리도 실제로 바뀌어요. 또 죽은 사람의 진짜 직업을 혼자 알 수 있어요(환자는 두 번째 죽었을 때).',
 정치인:'[중립] 밤마다 한 명의 다음 날 투표권을 빼앗아 내가 2표를 행사해요. 범인이 살아 있을 때 투표로 처형되면 혼자 승리하고 게임이 끝나요. 거짓 직업 가능.',
 환자:'[시민] 밤마다 한 명의 다음 밤 행동을 막아요(같은 사람을 연속으로는 못 막아요). 범인에게 죽어도 의사가 수술하면 살아나요. 거짓 직업 가능.',
 탐정:'[시민] 밤마다 한 명의 느낌을 봐요: 범인·군인·경찰 → 범인인거같다 / 의사·기자·목사 → 선량해보인다 / 버스기사·정치인·공범·환자 → 무서워보인다 / 백수 → 평범해보인다.'};
 $('#roleList').innerHTML=JOBS.concat('공범').map(j=>`<li><b>${j}</b>${esc(RDESC[j])}</li>`).join('');
-const JT=[['범인','k','범인','한 명 죽이기','O'],['공범','k','범인','없음 (위장)','O'],['경찰','t','시민','2밤부터 1번 조사 → 진짜 직업','O'],['군인','t','시민','겨누기 (3밤 연속 → 사살), 범인 반격','O'],['의사','t','시민','살리기 / 사인 검사 / 수술 1번','O'],['버스기사','t','시민','두 사람 대상 바꾸기','X'],['기자','t','시민','조사 2번 → 거짓말 가능 여부, 제보','X'],['목사','t','시민','나와 한 명 대상·자리 바꾸기','X'],['환자','t','시민','한 명 다음 밤 행동 막기','O'],['탐정','t','시민','한 명 느낌 힌트','X'],['정치인','n','중립','투표권 뺏기 (나는 2표)','O'],['백수','n','중립','범인 찍기','X']];
+const JT=[['범인','k','범인','한 명 죽이기','O'],['공범','k','범인','없음 (위장)','O'],['경찰','t','시민','2밤부터 1번 조사 → 진짜 직업','O'],['군인','t','시민','겨누기 (3밤 연속 → 사살), 범인 반격','O'],['의사','t','시민','살리기 / 사인 검사 / 수술 1번','O'],['버스기사','t','시민','두 사람 대상 바꾸기','X'],['기자','t','시민','조사 2번 → 거짓말 가능 여부, 제보','X'],['목사','t','시민','나와 한 명 대상·자리 바꾸기 · 죽은 사람 직업 보기','X'],['환자','t','시민','한 명 다음 밤 행동 막기','O'],['탐정','t','시민','한 명 느낌 힌트','X'],['정치인','n','중립','투표권 뺏기 (나는 2표)','O'],['백수','n','중립','범인 찍기','X']];
 $('#jtab').innerHTML='<tr><th>직업</th><th>편</th><th>밤에 하는 일</th><th>거짓말</th></tr>'+JT.map(([j,c,t,a,l])=>`<tr class="jr" data-j="${j}"><td><button class="jb" data-j="${j}">${j} ▾</button></td><td><span class="tm ${c}">${t}</span></td><td>${a}</td><td>${l}</td></tr><tr class="jd" data-jd="${j}" style="display:none"><td colspan="4">${esc(RDESC[j])}</td></tr>`).join('');
 $('#jtab').addEventListener('click',e=>{const r=e.target.closest('.jr');if(!r)return;const d=$(`#jtab [data-jd="${r.dataset.j}"]`);const open=d.style.display==='none';d.style.display=open?'table-row':'none';r.querySelector('.jb').textContent=r.dataset.j+(open?' ▴':' ▾');r.classList.toggle('op',open)});
 $('#rpg').addEventListener('click',e=>{const b=e.target.closest('[data-rp]');if(!b)return;document.querySelectorAll('#rpg button').forEach(x=>x.classList.toggle('on',x===b));document.querySelectorAll('.rp').forEach(x=>x.style.display=x.dataset.p===b.dataset.rp?'block':'none');$('#rules').scrollTop=0});
