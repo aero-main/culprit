@@ -66,7 +66,7 @@ h1,h2,h3{font-family:"Black Han Sans",sans-serif;font-weight:400;margin:0;line-h
 #act h3{font-size:22px;margin-bottom:8px}
 .hint{color:var(--dim);font-size:14px;margin:4px 0 10px}
 .tgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:5px;margin:6px 0}
-.tg{border-left:7px solid var(--c);text-align:left;padding:4px 8px;line-height:1.15;min-height:40px;font-size:15px}.dl .tg small{white-space:normal}.ftb{flex:1;min-height:34px;padding:2px 8px;font-size:14px;font-weight:700}.ftb.on{background:var(--gold);color:#1a1420;border-color:var(--gold);outline:none}.it.vis{border-left:4px solid #7fd8ff}.metog{background:none;border:none;padding:0;min-height:32px;font-size:13px;color:var(--dim);font-weight:700}#act h3{font-size:20px!important}#act .hint{font-size:13px;margin:2px 0 6px}
+.tg{border-left:7px solid var(--c);text-align:left;padding:4px 8px;line-height:1.15;min-height:40px;font-size:15px}.dl .tg small{white-space:normal}.ftb{flex:1;min-height:34px;padding:2px 8px;font-size:14px;font-weight:700}.ftb.on{background:var(--gold);color:#1a1420;border-color:var(--gold);outline:none}.it.vis{border-left:4px solid #7fd8ff}.ftb{white-space:nowrap;font-size:13px!important;padding:2px 6px!important}.hb{flex:none;min-height:30px;padding:2px 10px;font-size:13px}.hidmsg{display:none;color:var(--dim);font-size:13px;margin:6px 0}.lg.hid .list{display:none!important}.lg.hid .hidmsg{display:block}.lg.hid{flex:none!important}.metog{background:none;border:none;padding:0;min-height:32px;font-size:13px;color:var(--dim);font-weight:700}#act h3{font-size:20px!important}#act .hint{font-size:13px;margin:2px 0 6px}
 .tg small{display:block;color:var(--dim);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chip{box-shadow:0 0 0 1px #ffffff33;display:inline-block;padding:0 7px;border-radius:6px;background:var(--c);color:#111;font-weight:700;font-size:14px;line-height:1.5}
 .list{max-height:330px;overflow-y:auto;display:flex;flex-direction:column;gap:6px}
@@ -138,7 +138,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
     <div class="right">
       <div class="card pane" id="act"></div>
       <div class="tabs"><button data-x="tab" data-v="act">할 일</button><button data-x="tab" data-v="log">게시판 · 본 것</button><button data-x="tab" data-v="me">내 정보</button></div>
-      <div class="pane" id="logs"><div class="card lg"><p class="lh">공개 게시판</p><div class="list" id="pubs"></div></div><div class="card lg"><div class="row lh" style="gap:6px;flex-wrap:nowrap"><button data-x="ftab" data-v="feed" class="ftb" id="ftb1">내가 본 것</button><button data-x="ftab" data-v="vis" class="ftb" id="ftb2">나에게 온 사람</button></div><div class="list" id="feed"></div></div></div>
+      <div class="pane" id="logs"><div class="card lg" id="cpubs"><div class="row lh" style="justify-content:space-between;flex-wrap:nowrap"><span>공개 게시판</span><button class="hb" data-hide="cpubs">숨기기</button></div><div class="list" id="pubs"></div><p class="hidmsg">숨겨 두었어요 · "보이기"를 누르면 다시 보여요</p></div><div class="card lg" id="cfeed"><div class="row lh" style="gap:6px;flex-wrap:nowrap"><button data-x="ftab" data-v="feed" class="ftb" id="ftb1">내가 본 것</button><button data-x="ftab" data-v="vis" class="ftb" id="ftb2">나에게 온 사람</button><button class="hb" data-hide="cfeed">숨기기</button></div><p class="hidmsg">숨겨 두었어요 · "보이기"를 누르면 다시 보여요</p><div class="list" id="feed"></div></div></div>
     </div>
   </div>
 </div>
@@ -607,6 +607,9 @@ let wasAlive=null;
 const DRX=/\[?(\d+)(낮|밤)( 결과)?\]?\s*/;
 function sd(text,day,ph){const m=String(text).match(DRX);if(!m)return[day!=null&&day!==''?day+(ph||'낮'):'',text];let t=String(text).replace(DRX,'').replace(/^\s*[:·]\s*/,'').replace(/·\s*:\s*/,'· ').replace(/^\(안개\):\s*/,'안개 · ');return[m[1]+m[2],t]}
 let MEMO={},FTAB='feed';
+function applyHide(){['cpubs','cfeed'].forEach(id=>{let h=false;try{h=localStorage.getItem('bm-hide-'+id)==='1'}catch(e){}const c=document.getElementById(id);c.classList.toggle('hid',h);c.querySelector('.hb').textContent=h?'보이기':'숨기기'})}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-hide]');if(!b)return;const id=b.dataset.hide;const c=document.getElementById(id);const h=!c.classList.contains('hid');try{localStorage.setItem('bm-hide-'+id,h?'1':'0')}catch(_){}applyHide()});
+setTimeout(applyHide,0);
 document.addEventListener('input',e=>{if(e.target.id==='memoIn'&&WHO!=null&&V){const t=e.target.value.trim().slice(0,10);if(t)MEMO[WHO]=t;else delete MEMO[WHO];drawBoard()}});
 document.addEventListener('keydown',e=>{if(e.target.id==='memoIn'&&e.key==='Enter'){e.target.blur();WHO=null;render()}});
 function showView(v){if(!v.started)MEMO={};const died=v.started&&wasAlive===true&&v.alive===false;wasAlive=v.started?v.alive:null;V=v;recvAt=Date.now();if(died){TAB='act';$('#dmsg').textContent=v.cause||'';$('#deadMod').style.display='flex'}render()}
