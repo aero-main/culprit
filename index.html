@@ -412,7 +412,7 @@ function promptFor(p){if(!p.alive)return null;
   }return null}
 function viewFor(pid){const p=P(pid),now=NOW();
   const v={ph:G.phase,code:G.code,cap:G.cap,solo:G.solo,day:G.day,left:Math.max(0,G.deadline-now),me:pid,banner:G.banner||'',started:G.started,
-    ps:G.players.map(q=>({id:q.id,n:q.name,col:q.col,seat:q.seat,ai:!!q.ai,away:!!q.away,alive:q.alive!==false,r:G.started&&q.alive===false&&!hidePat(q)?q.role:null})),
+    ps:G.players.map(q=>({id:q.id,n:q.name,col:q.col,seat:q.seat,ai:!!q.ai,away:!!q.away,alive:q.alive!==false,r:null})),
     board:G.board.slice(-60).map(b=>({day:b.day,kind:b.kind,by:b.by,text:b.text}))};
   if(!G.started)return v;
   Object.assign(v,{cause:!p.alive?(hidePat(p)?'환자는 죽은 이유가 비밀이에요. 의사가 수술하면 살아날 수 있어요.':causeText(p.cause)):null,role:p.role,orig:p.orig,trace:p.trace,fake:p.fake,alive:p.alive,turn:G.phase==='night'?G.order[G.ti]:null,nb:neighbors(pid),center:G.center,
