@@ -89,7 +89,7 @@ h1,h2,h3{font-family:"Black Han Sans",sans-serif;font-weight:400;margin:0;line-h
 .rp table{width:100%;font-size:17px;background:#231d2e;border-radius:10px;overflow:hidden}.rp th{background:#33294a;color:var(--gold)}.rp td,.rp th{padding:9px 12px}
 .rp .roles li{background:#231d2e;border:1px solid var(--line);padding:12px 14px;font-size:16px;line-height:1.6}.rp .roles b{display:block;background:none;padding:0;font-size:19px;color:var(--gold);margin-bottom:4px}
 #rules .rp .roles{grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
-#bClose{margin:10px 20px 20px;min-width:140px}.more{margin:14px 0;background:#231d2e;border-radius:12px;padding:6px 12px}.more summary{cursor:pointer;font-weight:900;color:var(--gold);padding:8px 0;font-size:17px}.mh{margin:10px 0 2px;font-weight:900;color:#ffb3bb}#roleList{padding:0!important}.jr{cursor:pointer}.jr:hover td{background:#2c2440}.jr.op td{background:#33294a}.jb{min-height:32px;padding:2px 10px;font-weight:900;font-size:16px;background:#3a2f4d;border:1px solid #5a4a72}.jd td{background:#1a1522;color:#e9e3f3;font-size:15px;line-height:1.7;padding:12px 16px;border-left:4px solid var(--gold)}
+#bClose{margin:10px 20px 20px;min-width:140px}.win{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.wc{border-radius:12px;padding:10px;font-size:15px;line-height:1.4}.wc b{display:block;font-size:18px;background:none;padding:0;margin-bottom:2px}.wc.t{background:#163d31}.wc.k{background:#4a1520}.wc.n{background:#3d3410}.steps{padding-left:0;list-style:none;margin:0}.steps li{background:#231d2e;border-radius:10px;padding:9px 12px;margin:6px 0;font-size:17px}.steps b{display:inline-block;min-width:52px;color:var(--gold);background:none;padding:0}@media(max-width:600px){.win{grid-template-columns:1fr}}.more{margin:14px 0;background:#231d2e;border-radius:12px;padding:6px 12px}.more summary{cursor:pointer;font-weight:900;color:var(--gold);padding:8px 0;font-size:17px}.mh{margin:10px 0 2px;font-weight:900;color:#ffb3bb}#roleList{padding:0!important}.jr{cursor:pointer}.jr:hover td{background:#2c2440}.jr.op td{background:#33294a}.jb{min-height:32px;padding:2px 10px;font-weight:900;font-size:16px;background:#3a2f4d;border:1px solid #5a4a72}.jd td{background:#1a1522;color:#e9e3f3;font-size:15px;line-height:1.7;padding:12px 16px;border-left:4px solid var(--gold)}
 .flow{display:flex;align-items:stretch;gap:6px;margin:14px 0 4px}.flow div{flex:1;background:#2a2238;border:1px solid #4a3d5e;border-radius:12px;padding:10px;text-align:center;font-size:15px;line-height:1.4}.flow b{display:block;font-size:20px;color:var(--gold);background:none}.flow span{display:inline-block;width:24px;height:24px;border-radius:50%;background:var(--red);color:#fff;font-weight:900;line-height:24px;font-size:14px}.flow i{align-self:center;color:var(--gold);font-style:normal;font-size:20px}
 .tm{display:inline-block;padding:1px 10px;border-radius:999px;font-weight:900;font-size:15px;white-space:nowrap}.tm.t{background:#1f5d4a;color:#c9ffe9}.tm.k{background:#7a1a28;color:#ffd6dc}.tm.n{background:#5a4a12;color:#ffeeb0}
 .tr{font-weight:700;color:#ffb3bb}.rp u{text-decoration:none;color:#fff;font-weight:900;border-bottom:2px solid var(--gold)}
@@ -152,75 +152,48 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
 <h2 style="font-size:30px;color:var(--red)">게임 규칙</h2>
 <div class="row sec" id="rpg"><button data-rp="1" class="on">1. 게임 진행</button><button data-rp="2">2. 흔적과 살인</button><button data-rp="3">3. 직업 상세</button></div>
 <div class="rp" data-p="1">
-<div class="flow"><div><span>1</span><b>낮</b>말하고 · 공개하고 · 투표</div><i>→</i><div><span>2</span><b>밤</b>한 명씩 능력 쓰기</div><i>→</i><div><span>3</span><b>반복</b>한 편이 이길 때까지</div></div>
-<h3 class="rh">누가 이기나</h3>
-<table><tr><th>편</th><th>이기는 조건</th></tr>
-<tr><td><span class="tm t">시민</span></td><td>살인하는 범인(범인·스파이·도둑·사기꾼)을 <u>모두</u> 처형</td></tr>
-<tr><td><span class="tm k">범인</span></td><td>범인 편 수 = 나머지 수가 되면</td></tr>
-<tr><td><span class="tm n">정치인</span></td><td>범인이 살아 있을 때 <u>투표로 처형</u>되면 혼자 승리</td></tr>
-<tr><td><span class="tm n">백수</span></td><td>범인을 찾으면 공범(범인 편), 못 찾으면 시민 편</td></tr></table>
-<h3 class="rh">진행 순서</h3>
-<table><tr><th>언제</th><th>하는 일</th></tr>
-<tr><td><b>0낮</b></td><td>범인이 가운데 사람을 죽여요 <small>(의사가 있으면 사인 공개)</small></td></tr>
-<tr><td><b>1낮</b> 안개</td><td>내 <u>흔적</u> 말하기 · 범인은 거짓말 가능</td></tr>
-<tr><td><b>밤</b></td><td>한 명씩 20초 안에 <u>능력</u> 쓰기 · 결과는 다음 낮에</td></tr>
-<tr><td><b>2낮</b> 안개</td><td>내 <u>직업</u> 말하기 · 일부 직업 거짓말 가능 · 낮이 끝날 때 한꺼번에 보여요<br><small>4~5명이면 이어서 투표</small></td></tr>
-<tr><td><b>3낮~</b></td><td>회의 2분: 본 것 <u>1개 공개</u> + <u>투표</u></td></tr>
-<tr><td><b>4낮</b></td><td>범인이 직업 추리 1번 (맞히면 그 사람 처형)</td></tr></table>
+<div class="flow"><div><span>1</span><b>낮</b>말하고 · 투표</div><i>→</i><div><span>2</span><b>밤</b>능력 쓰기</div><i>→</i><div><span>3</span><b>반복</b>승부가 날 때까지</div></div>
+<h3 class="rh">승리 조건</h3>
+<div class="win"><div class="wc t"><b>시민</b>범인을 모두 처형</div><div class="wc k"><b>범인 편</b>살아남은 수가 시민과 같아지면</div><div class="wc n"><b>정치인</b>투표로 처형되면 혼자 승리</div></div>
+<h3 class="rh">하루 흐름</h3>
+<ol class="steps">
+<li><b>0낮</b> 범인이 가운데 사람을 죽여요</li>
+<li><b>1낮</b> 내 몸의 <u>흔적</u>을 말해요</li>
+<li><b>밤</b> 한 명씩 <u>능력</u>을 써요 (20초)</li>
+<li><b>2낮</b> 내 <u>직업</u>을 말해요 (거짓말 가능한 직업 있음)</li>
+<li><b>3낮~</b> 본 것 <u>1개 공개</u> + <u>투표</u> (2분)</li>
+</ol>
 <h3 class="rh">꼭 알아둘 것</h3>
 <ul class="ck">
-<li><b>안개</b> 1~2낮과 밤엔 내 양옆 것만 보여요</li>
-<li><b>밤 정보</b> 밤에 본 것·능력 결과는 다음 낮에 한꺼번에 나와요</li>
-<li><b>투표</b> 표 수가 실시간으로 보이고 바꾸거나 취소할 수 있어요 · 동률이면 아무도 안 죽어요</li>
-<li><b>죽으면</b> 직업은 비공개 (목사·사이비교주만 알아요) · 죽은 나는 모두의 직업이 보여요</li>
-<li><b>메모</b> 원탁의 사람을 누르면 나만 보는 메모와 그 사람 정보가 나와요</li>
-<li><b>범인 편</b> 4~5명 1명 · 6~7명 1~2명 · 8명 이상 2명 (2명이면 범인 + 보조 1명)</li>
+<li><b>안개</b> 내 양옆 사람 것만 보여요</li>
+<li><b>밤 결과</b> 다음 낮에 한꺼번에 나와요</li>
+<li><b>투표</b> 바꾸기·취소 가능 · 동률이면 아무도 안 죽어요</li>
+<li><b>죽음</b> 죽은 사람의 직업은 비밀 (목사·사이비교주만 알아요)</li>
+<li><b>메모</b> 원탁의 사람을 누르면 메모하고 정보를 볼 수 있어요</li>
 </ul>
-<details class="more"><summary>세부 규칙 더 보기</summary>
-<p class="mh">범인 편</p>
+<details class="more"><summary>더 자세한 규칙</summary>
 <ul class="ck">
-<li><b>구성</b> 2명이면 항상 범인 + 보조 1명 (스파이·도둑·사기꾼·공범·사이비교주 중 랜덤)</li>
-<li><b>살인</b> 우선순위 범인 → 스파이 → 도둑 → 사기꾼. 가장 앞선 범인은 매 밤 죽이고, 나머지는 같은 사람을 두 번 노려야 죽여요</li>
-<li><b>서로 모름</b> 살인하는 범인끼리는 서로 몰라요 (고르는 대상은 공유돼요) · 공범·사이비교주는 범인과 서로 알아요</li>
-<li><b>공유</b> 범인끼리만 보는 게시판에 한 밤에 1개 공유할 수 있어요</li>
-<li><b>거짓말</b> 1낮 흔적은 메인 범인만 거짓말 · 가짜 직업은 이번 판에 없는 직업 · 2낮에 사기꾼은 "기자", 사이비교주는 "목사"</li>
-<li><b>백수 → 공범</b> 백수가 범인을 찾거나 범인에게 노려지면 공범 · 백수 출신 공범은 같은 사람을 두 번 노리면 죽여요</li>
-</ul>
-<p class="mh">직업끼리</p>
-<ul class="ck">
-<li><b>군인</b> 군인을 찾아간 범인이 죽어요 (여럿이면 우선순위 가장 낮은 범인) · 알림은 "범인이 군인에게 당했다"</li>
-<li><b>목사</b> 범인이 목사를 노리고 목사가 그 범인을 고르면 범인이 죽어요 · 버스기사와 겹치면 목사 먼저</li>
-<li><b>환자</b> 범인을 막으면 그 밤엔 살인 없음 (대신 범인이 환자를 알게 돼요) · 의사는 못 막아요</li>
-<li><b>의사 ↔ 환자</b> 서로를 고르면 서로의 직업을 알게 돼요 · 의사가 없는 판의 환자는 보통 사람처럼 처리 · 경찰은 시신 조사 가능</li>
-<li><b>정치인</b> 투표권을 뺏은 사람이 죽으면 1표만</li>
-<li><b>연예인</b> 한 밤에 3명 이상 찾아오면 공개되고 투표권 2개</li>
-</ul>
-<p class="mh">기타</p>
-<ul class="ck">
-<li><b>4밤</b> 양옆 대신 지켜볼 1명을 골라요 (안 고르면 왼쪽 사람)</li>
-<li><b>기자 시야</b> 4~5명 2명 · 6~7명 3명 · 8명 이상 4명 (밤 선택도 바로 봐요)</li>
-<li><b>등장 조건</b> 군인 5명 이상 · 연예인 7명 이상 · 버스기사·목사는 범인 편 2명인 판만 · 백수는 범인 편 1명인 판만</li>
-<li><b>투표 마감</b> 모두 투표하면 3초 뒤 마감 · 나에게도 투표 가능</li>
+<li><b>범인 편 인원</b> 4~5명 1명 · 6~7명 1~2명 · 8명 이상 2명 (범인 + 보조 1명)</li>
+<li><b>범인 살인</b> 범인은 매 밤, 보조 범인은 같은 사람을 2번 노려야 죽여요</li>
+<li><b>범인끼리</b> 서로 몰라요 · 한 밤에 1개 정보 공유 가능</li>
+<li><b>백수</b> 범인을 찾거나 범인에게 노려지면 공범이 돼요</li>
+<li><b>군인</b> 군인을 찾아간 범인은 죽어요</li>
+<li><b>환자</b> 범인을 막으면 그 밤 살인 없음</li>
+<li><b>목사·버스기사</b> 대상을 바꿔요 (목사 먼저)</li>
+<li><b>4낮</b> 범인이 직업을 맞히면 그 사람 처형 · <b>4밤</b> 지켜볼 1명 선택</li>
 </ul>
 </details>
 </div>
 <div class="rp" data-p="2" style="display:none">
 <h3 class="rh">살인 방법 → 범인 몸의 흔적</h3>
 <table><tr><th>방법</th><th>흔적</th></tr>
-<tr><td>목 조르기</td><td><span class="tr">저항흔적</span></td></tr><tr><td>둔기</td><td><span class="tr">피</span></td></tr><tr><td>칼</td><td><span class="tr">피</span></td></tr><tr><td>독</td><td><span class="tr">주사기</span></td></tr><tr><td>총</td><td><span class="tr">화약가루</span></td></tr></table>
-<h3 class="rh">누가 무슨 흔적?</h3>
-<table><tr><th>사람</th><th>흔적</th></tr>
-<tr><td><span class="tm k">범인</span></td><td>살인 방법의 흔적 (끝까지 그대로)</td></tr>
-<tr><td><span class="tm t">군인</span></td><td>범인과 <u>같은</u> 흔적</td></tr>
-<tr><td>나머지</td><td>4가지 중 랜덤</td></tr></table>
-<h3 class="rh">흔적 알아내기</h3>
+<tr><td>목 조르기</td><td><span class="tr">저항흔적</span></td></tr><tr><td>둔기 · 칼</td><td><span class="tr">피</span></td></tr><tr><td>독</td><td><span class="tr">주사기</span></td></tr><tr><td>총</td><td><span class="tr">화약가루</span></td></tr></table>
 <ul class="ck">
-<li><b>1낮</b> 모두 자기 흔적을 말해요 (메인 범인만 거짓말)</li>
-<li><b>경찰</b> 매 밤 흔적 조사 → 진짜 흔적 (다음 낮에) · 2밤부터 1번 직업 조사</li>
-<li><b>주의</b> 스파이의 가짜 조사는 진짜 경찰 결과와 똑같이 보여요</li>
-<li><b>의사</b> 시신 검사 → 사인 → 범인 흔적 추리</li>
-<li><b>0낮</b> 의사가 있는 판이면 가운데 사람이 무엇에 죽었는지 모두에게 공개돼요 (없으면 "가운데 사람이 죽었다"만)</li>
-<li><b>팁</b> 말한 흔적 ≠ 경찰이 본 흔적 → 그 사람이 범인!</li></ul>
+<li><b>범인</b> 고른 방법의 흔적이 계속 남아요</li>
+<li><b>군인</b> 범인과 같은 흔적이에요</li>
+<li><b>나머지</b> 4가지 중 랜덤</li>
+<li><b>찾는 법</b> 경찰 몸수색 · 의사 사인 검사 · 1낮 흔적 발표 비교</li>
+</ul>
 </div>
 <div class="rp" data-p="3" style="display:none">
 <p class="hint">직업 이름을 누르면 자세한 설명이 열려요. 거짓말 O = 2낮에 가짜 직업을 말할 수 있어요.</p>
