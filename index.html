@@ -177,7 +177,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
 <li><b>4명 게임</b> 군인은 나오지 않아요</li>
 <li><b>4밤</b> 양옆 대신 지켜볼 1명을 골라요 (안 고르면 가장 가까운 왼쪽 사람)</li>
 <li><b>환자 vs 범인</b> 환자가 범인을 막으면 그 밤엔 범인 모두 살인 못 함 · 대신 범인들이 환자가 누군지 알게 돼요</li>
-<li><b>범인끼리 공유</b> 범인이 2명 이상 살아 있으면 밤에 "내가 본 것"을 범인끼리만 보는 게시판에 공유할 수 있어요</li>
+<li><b>범인끼리 공유</b> 범인이 2명 이상 살아 있으면 밤마다 1개씩 "내가 본 것"을 범인끼리만 보는 게시판에 공유할 수 있어요</li>
 <li><b>가짜 직업</b> 범인의 가짜 직업은 이번 판에 없는 직업이에요</li>
 <li><b>의사 없는 판</b> 환자도 다른 사람처럼 한 번 죽으면 끝 (목사에게 직업이 보이고, 죽은 뒤 모든 직업이 보여요)</li></ul>
 </div>
@@ -387,7 +387,7 @@ function resolveNight(){const k=G.day,A=G.acts,dead=[];
   pause(`날이 밝았다.\n${txt}`,7500,()=>{if(!checkWin())startDay(k+1)})}
 
 const tipKey=()=>G.day+(G.phase==='night'?'n':'d');
-const canKShare=p=>p.alive&&p.team==='K'&&G.phase==='night'&&alive().filter(q=>q.team==='K').length>=2;
+const canKShare=p=>p.alive&&p.team==='K'&&G.phase==='night'&&alive().filter(q=>q.team==='K').length>=2&&!(G.ksUsed&&G.ksUsed[p.id+':'+G.day]);
 const canTipNow=p=>p.alive&&p.role==='기자'&&['fog','meet','night'].includes(G.phase)&&!G.tipK[tipKey()];
 const knownMates=p=>p.role==='공범'?G.players.filter(q=>q.role==='범인').map(q=>q.id):p.role==='범인'?G.players.filter(q=>q.role==='공범').map(q=>q.id):[];
 function voidReason(p){if(G.gallows===p.id)return'처형대에 올라 투표권이 없다';if(G.steal&&G.steal.day===G.day&&G.steal.t===p.id&&P(G.steal.pol).alive)return'정치인에게 투표권을 빼앗겼다';return''}
@@ -438,7 +438,7 @@ function hostAct(pid,a){const p=P(pid);if(!p||!a)return;
     case 'kpick':if(G.phase==='night'&&G.order[G.ti]===pid&&p.role==='범인'&&P(a.t)&&P(a.t).alive){G.kpre={by:pid,t:a.t};G.dirty=true}break;
     case 'vote':if(G.phase==='meet'&&G.votes[pid]===undefined&&!voidReason(p)&&(a.t===-1||(P(a.t)&&P(a.t).alive))){G.votes[pid]=a.t;ml(p,a.t===-1?'투표: 미선택':`투표: ${cn(a.t)}`);G.dirty=true}break;
     case 'pub':{if(G.phase!=='meet'||(G.pubN[pid]||0)>=1)break;const it=p.feed.find(x=>x.id===a.fid);if(!it||!pubable(p,it))break;doPub(p,it,false);break}
-    case 'kshare':{if(!canKShare(p))break;const it=p.feed.find(x=>x.id===a.fid);if(!it||it.k==='info')break;const key='K'+pid+':'+a.fid;if(G.pubd.has(key))break;G.pubd.add(key);G.board.push({day:G.day,ph:'밤',kind:'kshare',to:'K',by:pid,text:'[범인끼리] '+cn(pid)+' 공유: '+it.text});H(`범인 ${cn(pid)} 범인끼리 공유: ${it.text}`);G.dirty=true;break}
+    case 'kshare':{if(!canKShare(p))break;const it=p.feed.find(x=>x.id===a.fid);if(!it||it.k==='info')break;const key='K'+pid+':'+a.fid;if(G.pubd.has(key))break;G.pubd.add(key);(G.ksUsed=G.ksUsed||{})[pid+':'+G.day]=1;G.board.push({day:G.day,ph:'밤',kind:'kshare',to:'K',by:pid,text:'[범인끼리] '+cn(pid)+' 공유: '+it.text});H(`범인 ${cn(pid)} 범인끼리 공유: ${it.text}`);G.dirty=true;break}
     case 'tip':{if(!canTipNow(p))break;const it=p.feed.find(x=>x.id===a.fid);if(!it||it.who===pid)break;
       G.tipK[tipKey()]=1;ml(p,'몰래 제보: '+it.text);G.pubd.add(pid+':'+a.fid);const ent={kind:'tip',by:-1,text:"기자 제보 · "+(it.ph==="낮"?`[${it.day}낮] `:"")+it.text,it};
       if(G.phase==='night'){G.tipQ.push(ent);H(`기자 ${cn(pid)} 밤에 몰래 제보 (다음 날 공개): ${it.text}`);see(pid,{k:'info',text:'제보 완료! 다음 날 낮에 공개돼요.'})}else{H(`기자 ${cn(pid)} 몰래 제보: ${it.text}`);G.board.push(Object.assign({day:G.day},ent))}G.dirty=true;break}
