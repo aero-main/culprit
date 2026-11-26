@@ -179,7 +179,7 @@ function startGame(){
   fillAI();const N=G.players.length,nk=N>=6?2:1;
   const pool=JOBS.filter(j=>j!=='범인'&&!(nk===2&&j==='백수'));
   const roles=shuffle([...Array(nk).fill('범인'),...shuffle(pool).slice(0,N-nk)]);
-  G.players.forEach((p,i)=>{Object.assign(p,{role:roles[i],orig:roles[i],alive:true,feed:[],trace:null,claim:null,fake:null,blockNight:-1,usedSurg:false,byKiller:false,cause:null,found:false,polWin:false,hist:0,lastT:null,examined:[],win:false});p.team=teamOf(p.role);if(p.role==='범인')p.fake=rnd(pool.filter(j=>j!=='백수'))});
+  G.players.forEach((p,i)=>{Object.assign(p,{role:roles[i],orig:roles[i],alive:true,feed:[],trace:null,claim:null,fake:null,blockNight:-1,usedSurg:false,byKiller:false,cause:null,found:false,polWin:false,hist:0,lastT:null,examined:[],win:false,deaths:0});p.team=teamOf(p.role);if(p.role==='범인')p.fake=rnd(pool.filter(j=>j!=='백수'))});
   G.started=true;G.day=0;G.board=[];G.pubd=new Set();G.dlog=[];G.method=null;G.steal=null;G.foundFlag=false;G.center={};G.centerM=null;
   G.centerBy=G.players.filter(p=>p.role==='범인').sort((a,b)=>a.seat-b.seat)[0].id;
   G.players.filter(p=>p.team==='K').forEach(p=>see(p.id,{k:'info',text:'범인: '+G.players.filter(q=>q.team==='K').map(q=>cn(q.id)).join(', ')+(p.fake?` · 내 가짜 직업은 ${p.fake}`:'')}));
@@ -230,10 +230,11 @@ function nightTimeout(){const p=P(G.order[G.ti]);const sp=nightSpec(p);
   else if(sp.none||!(sp.targets&&sp.targets.length))nightSubmit(p,{none:true});
   else nightSubmit(p,{t:rnd(sp.targets)})}
 function traceOf(m){return m==='교살'?'저항흔적':(m==='타살'||m==='칼')?'피':m==='독'?'주사기':'화약가루'}
-const shownRole=i=>P(i).role==='환자'?'':P(i).role;
+const hidePat=p=>p.role==='환자'&&(p.deaths||0)<2;
+const shownRole=i=>hidePat(P(i))?'':P(i).role;
 const nmR=(i,a,b)=>{const r=shownRole(i),w=r||cn(i);return cn(i)+(r?`(${r})`:'')+josa(w,a,b).slice(w.length)};
 const causeText=c=>{if(!c)return null;if(c==='처형')return'투표로 처형됐어요.';if(c==='총상')return'군인의 총에 맞아 죽었어요.';const k=c.charCodeAt(c.length-1),j=(k-0xAC00)%28;return`범인에게 ${c}${j===0||j===8?'로':'으로'} 살해당했어요.`};
-function kill(p,cause,ph,list){if(!p||!p.alive)return;p.alive=false;p.cause=cause;G.dlog.push({pid:p.id,day:G.day,ph});if(list)list.push(p.id)}
+function kill(p,cause,ph,list){if(!p||!p.alive)return;p.alive=false;p.deaths=(p.deaths||0)+1;p.cause=cause;G.dlog.push({pid:p.id,day:G.day,ph});if(list)list.push(p.id)}
 function res(pid,text,extra){see(pid,Object.assign({k:'res',text:`[${G.day}밤 결과] ${text}`},extra||{}))}
 function resolveNight(){const k=G.day,A=G.acts,dead=[];
   const blk=new Set(G.players.filter(p=>p.blockNight===k).map(p=>p.id));const ok=id=>A[id]&&!A[id].none&&!blk.has(id);
@@ -387,10 +388,10 @@ function promptFor(p){if(!p.alive)return null;
   }return null}
 function viewFor(pid){const p=P(pid),now=NOW();
   const v={ph:G.phase,code:G.code,cap:G.cap,solo:G.solo,day:G.day,left:Math.max(0,G.deadline-now),me:pid,banner:G.banner||'',started:G.started,
-    ps:G.players.map(q=>({id:q.id,n:q.name,col:q.col,seat:q.seat,ai:!!q.ai,away:!!q.away,alive:q.alive!==false,r:G.started&&q.alive===false&&q.role!=='환자'?q.role:null,voted:G.phase==='meet'&&G.votes&&G.votes[q.id]!==undefined})),
+    ps:G.players.map(q=>({id:q.id,n:q.name,col:q.col,seat:q.seat,ai:!!q.ai,away:!!q.away,alive:q.alive!==false,r:G.started&&q.alive===false&&!hidePat(q)?q.role:null,voted:G.phase==='meet'&&G.votes&&G.votes[q.id]!==undefined})),
     board:G.board.slice(-60).map(b=>({day:b.day,kind:b.kind,by:b.by,text:b.text}))};
   if(!G.started)return v;
-  Object.assign(v,{cause:!p.alive&&p.role!=='환자'?causeText(p.cause):null,role:p.role,orig:p.orig,trace:p.trace,fake:p.fake,alive:p.alive,turn:G.phase==='night'?G.order[G.ti]:null,nb:neighbors(pid),center:G.center,
+  Object.assign(v,{cause:!p.alive&&!hidePat(p)?causeText(p.cause):null,role:p.role,orig:p.orig,trace:p.trace,fake:p.fake,alive:p.alive,turn:G.phase==='night'?G.order[G.ti]:null,nb:neighbors(pid),center:G.center,
     mates:p.team==='K'?G.players.filter(q=>q.team==='K'&&q.id!==pid).map(q=>q.id):[],
     feed:p.feed.map(it=>({id:it.id,day:it.day,ph:it.ph,text:it.text,own:it.who===pid,pubd:G.pubd.has(pid+':'+it.id),k:it.k})),pr:promptFor(p)});
   if(G.phase==='end')v.end={w:G.winner,rs:G.players.map(q=>({id:q.id,role:q.role,orig:q.orig,win:q.win,alive:q.alive}))};
