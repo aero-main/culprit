@@ -241,7 +241,7 @@ function nightTimeout(){const p=P(G.order[G.ti]);const sp=nightSpec(p);
   else nightSubmit(p,{t:rnd(sp.targets)})}
 function traceOf(m){return m==='교살'?'저항흔적':(m==='타살'||m==='칼')?'피':m==='독'?'주사기':'화약가루'}
 const hidePat=p=>p.role==='환자'&&(p.deaths||0)<2;
-const shownRole=i=>hidePat(P(i))?'':P(i).role;
+const shownRole=i=>'';
 const nmR=(i,a,b)=>{const r=shownRole(i),w=r||cn(i);return cn(i)+(r?`(${r})`:'')+josa(w,a,b).slice(w.length)};
 const causeText=c=>{if(!c)return null;if(c==='처형')return'투표로 처형됐어요.';if(c==='총상')return'군인의 총에 맞아 죽었어요.';const k=c.charCodeAt(c.length-1),j=(k-0xAC00)%28;return`범인에게 ${c}${j===0||j===8?'로':'으로'} 살해당했어요.`};
 const ro=w=>{const k=w.charCodeAt(w.length-1),j=(k-0xAC00)%28;return w+(j===0||j===8?'로':'으로')};
