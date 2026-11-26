@@ -56,6 +56,7 @@ h1,h2,h3{font-family:"Black Han Sans",sans-serif;font-weight:400;margin:0;line-h
  .card{padding:12px}.top h2{font-size:20px}.top{gap:8px}}
 .it .chip{font-size:13px;padding:0 5px}
 .boardbox{position:relative;width:min(90cqw,90cqh,460px);height:min(90cqw,90cqh,460px);border-radius:50%;background:radial-gradient(circle,#2c2238 0%,#18131f 70%);box-shadow:0 0 0 2px #2d2539,0 30px 60px #0008}
+#mid{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:46%;max-height:44%;overflow:hidden;display:flex;flex-direction:column;gap:4px;align-items:center;pointer-events:none;z-index:1}#mid .mi{background:#0009;border:1px solid #ffffff22;border-radius:10px;padding:3px 8px;font-size:clamp(10px,2.4cqw,14px);line-height:1.35;text-align:center;animation:pop .5s ease}#mid .mi:first-child{border-color:var(--gold);font-weight:700}#mid .mt{font-size:clamp(9px,2cqw,12px);color:var(--gold);letter-spacing:0}@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
 .boardbox svg{position:absolute;inset:0;width:100%;height:100%}
 .fog{position:absolute;inset:-4%;border-radius:50%;pointer-events:none;opacity:0;transition:opacity 1.2s;background:radial-gradient(circle at 30% 40%,#cfc6dd55,transparent 40%),radial-gradient(circle at 70% 60%,#cfc6dd44,transparent 45%),radial-gradient(circle at 50% 85%,#cfc6dd33,transparent 40%);background-size:200% 200%;animation:drift 14s linear infinite;filter:blur(8px)}
 .fog.on{opacity:1}.night .boardbox{background:radial-gradient(circle,#1d1830 0%,#0b0910 70%)}
@@ -131,7 +132,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
   <div id="now"></div>
   <div class="main">
     <div class="left">
-      <div class="boardwrap"><div class="boardbox"><svg id="board" viewBox="0 0 400 400"></svg><div class="fog" id="fog"></div></div><div id="banner"></div></div>
+      <div class="boardwrap"><div class="boardbox"><svg id="board" viewBox="0 0 400 400"></svg><div class="fog" id="fog"></div><div id="mid"></div></div><div id="banner"></div></div>
       <div class="card pane" id="mecard"></div>
     </div>
     <div class="right">
@@ -508,7 +509,7 @@ function viewFor(pid){const p=P(pid),now=NOW();
   if(!G.started)return v;
   Object.assign(v,{mylog:p.mylog||[],method:p.team==='K'?G.method:null,cause:!p.alive?(hidePat(p)?'환자는 죽은 이유가 비밀이에요. 의사가 수술하면 살아날 수 있어요.':causeText(p.cause)):null,role:p.role,orig:p.orig,trace:p.trace,fake:p.fake,alive:p.alive,turn:G.phase==='night'?G.order[G.ti]:null,nb:neighbors(pid),center:G.center,
     mates:knownMates(p),kshare:p.role==='범인'&&G.phase==='night'?{pre:G.kpre&&G.kpre.by!==pid?G.kpre.t:null,dec:G.kdec&&G.kdec.by!==pid?G.kdec.t:null}:null,
-    canTip:canTipNow(p),feed:p.feed.map(it=>({id:it.id,day:it.day,ph:it.ph,text:it.text,own:it.who===pid,pubd:G.pubd.has(pid+':'+it.id),k:it.k})),pr:promptFor(p)});
+    canTip:canTipNow(p),feed:p.feed.map(it=>({id:it.id,day:it.day,ph:it.ph,text:it.text,own:it.who===pid,pubd:G.pubd.has(pid+':'+it.id),k:it.k,who:it.k==='pick'?it.who:undefined,tgt:it.k==='pick'?it.tgt:undefined})),pr:promptFor(p)});
   if(!p.alive&&!hidePat(p))v.ps.forEach(x=>{x.rr=P(x.id).role});v.patWait=!p.alive&&hidePat(p);
   if(G.phase==='end')v.end={hist:G.hist||[],why:G.endWhy,w:G.winner,rs:G.players.map(q=>({id:q.id,role:q.role,orig:q.orig,win:q.win,alive:q.alive,why:q.alive?null:causeText(q.cause)}))};
   return v}
@@ -592,7 +593,12 @@ function phaseName(){const d=V.day;return{lobby:'대기실',intro:'원 가운데
 function drawBoard(){const N=V.started?V.ps.length:V.cap,cx=200,cy=200,R=148;let h='';
   const fogDay=V.started&&(V.ph==='fog'||V.ph==='night'||(V.ph==='pause'&&V.day<=2)||V.ph==='intro');
   h+=`<circle cx="200" cy="200" r="${R}" fill="none" stroke="#3a3248" stroke-width="2" stroke-dasharray="4 8"/>`;
-  if(V.started){const dead=V.ph!=='intro';h+=`<g transform="translate(200 205)" opacity="${dead?.75:1}"><ellipse cx="0" cy="34" rx="${dead?44:26}" ry="7" fill="#0008"/>`+(dead?`<g transform="rotate(90)"><circle cx="-26" cy="0" r="11" fill="#bdb3c9"/><rect x="-14" y="-12" width="40" height="24" rx="10" fill="#8c8199"/></g><text y="58" text-anchor="middle" font-size="13" fill="#e0313f">첫 희생자</text>`:`<circle cx="0" cy="-14" r="12" fill="#d8cfe3"/><rect x="-15" y="0" width="30" height="30" rx="11" fill="#a99dba"/><text y="58" text-anchor="middle" font-size="13" fill="#a79fb6">가운데 사람</text>`)+`</g>`}
+  const sp=id=>{const q=V.ps[id];const a=(-90+360*q.seat/N)*Math.PI/180;return[cx+R*Math.cos(a),cy+R*Math.sin(a)]};
+  const picks=(V.feed||[]).filter(x=>x.k==='pick');const lastN=picks.length?Math.max(...picks.map(x=>x.day)):-1;
+  if(V.started){h+='<defs>'+COLORS.map((c,i)=>`<marker id="ah${i}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="${c[1]}"/></marker>`).join('')+'</defs>';
+    for(const x of picks.filter(x=>x.day===lastN&&x.tgt!=null&&V.ps[x.who]&&V.ps[x.tgt])){const[a1,b1]=sp(x.who),[a2,b2]=sp(x.tgt);const dx=a2-a1,dy=b2-b1,L=Math.hypot(dx,dy)||1,o=34;const c=COLORS[V.ps[x.who].col][1];
+      h+=`<line x1="${(a1+dx/L*o).toFixed(1)}" y1="${(b1+dy/L*o).toFixed(1)}" x2="${(a2-dx/L*o).toFixed(1)}" y2="${(b2-dy/L*o).toFixed(1)}" stroke="${c}" stroke-width="4" stroke-linecap="round" marker-end="url(#ah${V.ps[x.who].col})" opacity=".9"></line>`}}
+  {const fd=(V.feed||[]).filter(x=>x.k!=='info').slice(-3).reverse();const md=$('#mid');const key=fd.map(x=>x.id).join(',');if(md.dataset.k!==key){md.dataset.k=key;md.innerHTML=V.started&&fd.length?'<div class="mt">내가 본 것</div>'+fd.map(x=>{const[l,t]=sd(x.text,x.day,x.ph);return`<div class="mi">${l?`<span style="opacity:.7">${l}</span> `:''}${colz(t)}</div>`}).join(''):''}}
   if(!V.started)for(let s=0;s<N;s++){if(V.ps.some(q=>q.seat===s))continue;const a=(-90+360*s/N)*Math.PI/180,x=cx+R*Math.cos(a),y=cy+R*Math.sin(a);h+=`<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)})" data-x="spick" data-v="${s}" style="cursor:pointer"><circle r="28" fill="#ffffff0d" stroke="#f2c14e" stroke-width="2" stroke-dasharray="5 5"/><text y="5" text-anchor="middle" font-size="13" font-weight="700" fill="#f2c14e">빈자리</text></g>`}
   for(const q of V.ps){const a=(-90+360*q.seat/N)*Math.PI/180,x=cx+R*Math.cos(a),y=cy+R*Math.sin(a),c=COLORS[q.col][1];const me=q.id===V.me,turn=V.turn===q.id,nb=V.nb&&V.nb.includes(q.id)&&fogDay;
     h+=`<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)})" data-x="seat" data-v="${q.id}" style="cursor:pointer" opacity="${q.alive?1:.35}">`;
