@@ -303,7 +303,7 @@ function startGame(){
   const fixed=['범인',...SUBS,...(NEUT?[NEUT]:[]),...(N>=6?['백수']:[])];
   const roles=shuffle([...fixed,...shuffle(pool).slice(0,N-fixed.length)]).map(r=>['스파이','도둑','사기꾼'].includes(r)?'범인:'+r:r);
   const fakeUsed=[];G.players.forEach((p,i)=>{const sp0=roles[i].startsWith('범인:')?roles[i].slice(3):null;roles[i]=sp0?'범인':roles[i];Object.assign(p,{role:roles[i],orig:roles[i],_sp:sp0,alive:true,feed:[],trace:null,claim:null,fake:null,blockNight:-1,usedSurg:false,byKiller:false,cause:null,found:false,polWin:false,hist:0,lastT:null,examined:[],win:false,deaths:0,mylog:[],visits:[],knum:0,tipsUsed:0,ftips:0,cpick:{},kspec:null,strikes:{},celeb:false,usedFake:false,usedSearch:false,usedSteal:false,stolenRole:null,stealNight:-1,sealNight:-1});p.team=teamOf(p.role);if(p.role==='범인'){const ab=JOBS.filter(j=>j!=='범인'&&!roles.includes(j));p.fake=ab.length?rnd(ab):rnd(pool.filter(j=>j!=='백수'));fakeUsed.push(p.fake)}});
-  G.hist=[];G.started=true;G.day=0;G.board=[];G.pubd=new Set();G.dlog=[];G.method=null;G.steal=null;G.foundFlag=false;G.ftipDay=-1;G.feyeDay=-1;G.fogFail=null;G.hasDoc=G.players.some(p=>p.role==='의사');G.nq=[];G.vq=null;G.tipQ=[];G.tipK={};G.polLost=false;G.center={};G.centerM=null;
+  G.hist=[];G.started=true;G.day=0;G.board=[];G.pubd=new Set();G.dlog=[];G.method=null;G.steal=null;G.foundFlag=false;G.ftipDay=-1;G.feyeDay=-1;G.fogFail=null;G.hasDoc=G.players.some(p=>p.role==='의사');G.showCause=G.players.some(p=>p.role==='의사'||p.role==='탐정');G.nq=[];G.vq=null;G.tipQ=[];G.tipK={};G.polLost=false;G.center={};G.centerM=null;
   G.centerBy=G.players.filter(p=>p.role==='범인').sort((a,b)=>a.seat-b.seat)[0].id;
   {const KS=G.players.filter(p=>p.role==='범인').sort((a,b)=>(a._sp?1:0)-(b._sp?1:0));KS.forEach((p,i)=>{p.knum=KS.length>=2?i+1:0;p.kspec=p._sp||null})}
   G.players.filter(p=>p.team==='K').forEach(p=>see(p.id,{k:'info',text:(p.knum?`당신은 ${dn(p)}예요 (범인 ${p.knum}번). 군인을 찾아간 범인은 반격당해 죽어요(여럿이면 번호가 큰 범인이 대신). `:'')+(nk===2?'범인은 2명이에요. 다른 범인이 누군지는 몰라요. 밤에 고르는 대상은 범인끼리 공유되고, 번호가 가장 낮은 범인(1번 → 2번 → 3번)의 결정을 따라요.':'당신은 범인이에요.')+(p.fake?` · 내 가짜 직업은 ${p.fake}`:'')}));
@@ -316,7 +316,7 @@ function doCenter(){const m=G.centerM||rnd(centerOpts());G.method=m;const kt=tra
   H('직업: '+G.players.map(p=>`${cn(p.id)} ${dn(p)}`).join(', '));H(`범인이 가운데 사람을 ${ro(WN[m])} 죽였다 (${MD[m]}). 살인 방법은 ${ro(WN[m])} 고정, 범인의 흔적은 ${kt}`);H('흔적: '+G.players.map(p=>`${cn(p.id)} ${p.trace}`).join(', '));
   G.players.filter(p=>p.team==='K').forEach(p=>see(p.id,{k:'info',text:`가운데 사람을 ${ro(WN[m])} 죽였다.`}));
   sysMsg('짙은 안개가 끼고, 모두의 몸에 알 수 없는 흔적이 남았다.');
-  const hasDoc=G.players.some(p=>p.role==='의사');const docLine=hasDoc?`사람이 ${MD[m]}.`:'사람이 죽었다.';sysMsg('0낮 · '+docLine,'death');H('0낮 공개: '+docLine)
+  const hasDoc=G.players.some(p=>p.role==='의사'||p.role==='탐정');const docLine=hasDoc?`사람이 ${MD[m]}.`:'사람이 죽었다.';sysMsg('0낮 · '+docLine,'death');H('0낮 공개: '+docLine)
   pause(docLine+'\n안개가 끼기 시작한다…',6500,()=>startDay(1))}
 function startDay(d){G.day=d;G.banner='';if(G.nq&&G.nq.length){G.nq.forEach(([x,it])=>see(x,it));G.nq=[]}if(G.vq){const q=G.vq;q.who.forEach(id=>{const p=P(id);(p.visits=p.visits||[]).push({day:q.night,from:q.vis[id]||[]})});G.vq=null;G.dirty=true}if(G.tipQ&&G.tipQ.length){G.tipQ.forEach(e=>G.board.push(Object.assign({day:d},e)));G.tipQ=[];G.dirty=true}
   if(G.foundFlag){G.foundFlag=false;G.players.filter(p=>p.team==='K'&&p.alive).forEach(p=>see(p.id,{k:'info',text:'⚠ 백수가 범인을 찾았습니다'}))}
@@ -341,7 +341,7 @@ function nightSpec(p){const others=alive().filter(q=>q.id!==p.id).map(q=>q.id);
     case '범인':return{main:alive().filter(q=>q.role==='범인').sort((a,b)=>kprio(a)-kprio(b))[0]===p,strikes:Object.keys(p.strikes||{}).filter(k=>p.strikes[k]>=1&&P(+k)&&P(+k).alive).map(Number),targets:alive().filter(q=>q.id!==p.id&&!knownMates(p).includes(q.id)).map(q=>q.id),methods:[G.method],none:true,steal:p.kspec==='도둑'&&!p.usedSteal?alive().filter(q=>q.id!==p.id).map(q=>q.id):null,fake:p.kspec==='스파이'&&!p.usedFake?alive().filter(q=>q.id!==p.id).map(q=>q.id):null};
     case '버스기사':return{targets:alive().map(q=>q.id),two:true,none:true};
     case '의사':return{heal:true,targets:alive().map(q=>q.id).filter(i=>!(i===p.id&&p.selfHeal===G.day-1)),corpses:G.players.filter(q=>!q.alive).map(q=>q.id),none:true,surgery:!p.usedSurg};
-    case '경찰':return{targets:others,none:false,police:true,jobAvail:G.day>=2&&!p.usedSearch,corpses:G.hasDoc?null:G.players.filter(q=>!q.alive).map(q=>q.id)};
+    case '경찰':return{targets:others,none:false,police:true,jobAvail:G.day>=2&&!p.usedSearch,corpses:G.showCause?null:G.players.filter(q=>!q.alive).map(q=>q.id)};
     case '기자':case '탐정':return{targets:others,none:false};
     case '환자':return{targets:others.filter(i=>!(p.lastBlockN===G.day-1&&p.lastBlockT===i)),none:true};
     case '공범':return{targets:others,none:true,strikes:p.orig==='백수'?Object.keys(p.strikes||{}).filter(k=>p.strikes[k]>=1&&P(+k)&&P(+k).alive).map(Number):null};
@@ -447,7 +447,7 @@ function resolveNight(){const k=G.day,A=G.acts,dead=[],celebs=[];
   const celTxt=celebs.length?celebs.map(i=>`\n${josa(cn(i),'은','는')} 연예인이었다! 같은 사람을 계속 찾아가다 정체가 드러났다. 이제 매 투표마다 2표다.`).join(''):'';
   const fogTxt=G.fogFail===k?'\n짙은 안개 속에서 범인이 길을 잃은 것 같다…':'';
   const solTxt=solHit?'\n범인이 군인에게 당했다!':'';
-  const txt=(dead.length?dead.map(i=>`${nmR(i,'이','가')} 숨진 채 발견되었다.`).join('\n'):'밤사이 아무도 죽지 않았다.')+fogTxt+solTxt+celTxt+savedTxt;
+  const txt=(dead.length?dead.map(i=>{const q=P(i),c=q.cause;const cz=G.showCause&&!hidePat(q)&&c?(MD[c]||(c==='총상'?'총에 맞았다':'')):'';return`${nmR(i,'이','가')} 숨진 채 발견되었다.`+(cz?` (사인: ${cz})`:'')}).join('\n'):'밤사이 아무도 죽지 않았다.')+fogTxt+solTxt+celTxt+savedTxt;
   sysMsg(`${k}밤 결과: `+txt.replace(/\n/g,' '),dead.length||saved.length?'death':'note');
   pause(`날이 밝았다.\n${txt}`,7500,()=>{if(!checkWin())startDay(k+1)})}
 
@@ -676,7 +676,7 @@ const REF={
 탐정:'<table><tr><th>보이는 느낌</th><th>해당 직업</th></tr><tr><td>범인인거같다</td><td>범인 · 스파이 · 도둑 · 사기꾼 · 군인 · 경찰</td></tr><tr><td>선량해보인다</td><td>의사 · 기자 · 목사 · 연예인</td></tr><tr><td>무서워보인다</td><td>버스기사 · 정치인 · 공범 · 환자 · 사이비교주</td></tr><tr><td>평범해보인다</td><td>백수</td></tr></table>',
 기자:'<p><b>거짓말을 할 수 있는 사람</b>: 범인 편 전부 · 정치인 · 환자 · 군인 · 경찰 · 의사</p><p><b>참말만 하는 사람</b>: 버스기사 · 백수 · 기자 · 목사 · 탐정 · 연예인</p><p>같은 사람을 두 번 조사해야 결과가 나와요 (연속이 아니어도 돼요). 결과는 다음 낮에 나와요.</p><p>제보: 게임당 2번 (낮·밤 각각 하루 1번까지). 밤 제보는 다음 날 낮에 공개돼요.</p>',
 범인:()=>'<p>이번 게임 살인 방법: <b>'+(V.method?WN[V.method]:'아직 안 정함')+'</b> · 내 흔적: <b>'+(V.trace||'-')+'</b> (군인도 같은 흔적)</p>'+TRT+'<p>우선순위 범인 → 스파이 → 도둑 → 사기꾼: 범인 1이 살아 있으면 범인 1만 매 밤 죽이고 나머지는 찾아가기만 해요. 범인 1이 죽으면 다음 순서 한 명만 같은 사람을 두 번 노려 죽여요. 군인을 찾아가면 죽어요. 백수를 노리면 공범이 돼요. 4낮에 직업 추리 1번.</p>',
-경찰:()=>'<p><b>흔적 조사</b>: 매 밤, 고른 사람의 진짜 흔적이 다음 낮에 나와요.</p><p><b>직업 조사</b>: 2밤부터 게임당 딱 1번. 지금: '+(V.usedSearch?'이미 썼어요':'아직 쓸 수 있어요')+'</p><p><b>시신 조사</b>: 의사가 없는 판에서만, 죽은 사람의 사인.</p>'+TRT,
+경찰:()=>'<p><b>흔적 조사</b>: 매 밤, 고른 사람의 진짜 흔적이 다음 낮에 나와요.</p><p><b>직업 조사</b>: 2밤부터 게임당 딱 1번. 지금: '+(V.usedSearch?'이미 썼어요':'아직 쓸 수 있어요')+'</p><p><b>시신 조사</b>: 의사·탐정이 없는 판에서만, 죽은 사람의 사인.</p>'+TRT,
 의사:'<p>모드: 살리기(자기 자신은 연속 불가) / 사인 검사 / 수술(게임당 1번, 범인에게 죽은 환자만 살아남).</p><p>사인으로 범인의 흔적을 알 수 있어요:</p>'+TRT,
 군인:()=>'<p>내 흔적: <b>'+(V.trace||'-')+'</b> (범인과 같은 흔적)</p><p>같은 사람을 3밤 연속 겨누면 쏴요. 범인 편이 나를 찾아오면 그 범인이 죽어요.</p>',
 버스기사:'<p>두 사람을 고르면 그 밤 두 사람을 노린 행동이 전부 서로 바뀌어요 (목사가 먼저 바꾼 뒤). 범인의 공격이 범인 자신에게 가면 범인이 죽어요. 내 양옆에는 첫 번째 색만 보여요.</p>',
@@ -851,16 +851,16 @@ const RDESC={범인:'[범인] 매 밤 한 명을 죽여요. 살인 방법은 0�
 도둑:'[범인] 보조 범인이에요 (범인 1이 살아 있으면 살인 못 함 · 범인 1이 죽으면 순서대로 이어받아 같은 사람 두 번 노려 살인). 게임당 1번, 한 명의 능력을 훔쳐요: 그 사람은 다음 밤 능력이 봉인되고, 나는 다음 밤에 그 사람의 능력을 써요.',
 사기꾼:'[범인] 보조 범인이에요 (범인 1이 살아 있으면 살인 못 함 · 범인 1이 죽으면 순서대로 이어받아 같은 사람 두 번 노려 살인). 2낮에는 무조건 "기자"라고 말해요. 2낮부터 게임당 2번(하루 1번까지), 진짜 기자 제보처럼 보이는 가짜 제보(누가 → 누구)를 공개 게시판에 올릴 수 있어요.',
 사이비교주:'[범인] 살인 능력이 없는 범인 편이에요. 범인과 서로 누군지 알아요. 2낮에는 무조건 "목사"라고 말해요. 목사와 같은 능력(대상·자리 맞바꾸기, 죽은 사람 직업 보기)이 있고, 낮에 하루 1번 죽은 사람의 색과 직업을 골라 "목사의 눈" 결과를 만들어 공개할 수 있어요 (거짓말 가능). 단, 목사와 같은 사람을 고르면 내 바꾸기는 실패하고 목사에게 정체가 들켜요.',
-경찰:'[시민] 매 밤 한 명을 몸수색해서 진짜 흔적을 확인해요. 2밤부터 게임당 딱 1번은 흔적 대신 진짜 직업을 알아내요. 의사가 없는 판에서는 시신을 조사해 사인도 알 수 있어요. 2낮에 거짓 직업을 말할 수 있어요.',
+경찰:'[시민] 매 밤 한 명을 몸수색해서 진짜 흔적을 확인해요. 2밤부터 게임당 딱 1번은 흔적 대신 진짜 직업을 알아내요. 의사·탐정이 없는 판에서는 시신을 조사해 사인도 알 수 있어요. 2낮에 거짓 직업을 말할 수 있어요.',
 군인:'[시민] 범인 편이 나를 찾아오면 반격해서 그 범인이 죽어요 (여럿이면 우선순위가 가장 낮은 범인). 같은 사람을 3밤 연속 겨누면 쏴서 죽여요. 범인과 같은 흔적을 가져요. 4명 게임에는 안 나와요. 거짓 직업 가능.',
-의사:'[시민] 매 밤 하나를 골라요: 한 명 살리기(그 밤 공격을 막음, 자기 자신은 연속으로 못 살림) / 시신 사인 검사 / 수술(게임당 1번, 범인에게 죽은 환자를 살림). 환자를 고르거나 환자가 나를 고르면 서로 직업을 알게 되고, 환자는 나를 막을 수 없어요. 의사가 있는 판이면 0낮에 가운데 사람의 사인이 공개돼요. 거짓 직업 가능.',
+의사:'[시민] 매 밤 하나를 골라요: 한 명 살리기(그 밤 공격을 막음, 자기 자신은 연속으로 못 살림) / 시신 사인 검사 / 수술(게임당 1번, 범인에게 죽은 환자를 살림). 환자를 고르거나 환자가 나를 고르면 서로 직업을 알게 되고, 환자는 나를 막을 수 없어요. 의사나 탐정이 있는 판이면 가운데 사람과 밤에 죽은 사람의 사인이 공개돼요. 거짓 직업 가능.',
 버스기사:'[시민] 매 밤 두 사람을 골라요. 그 밤 두 사람을 노린 모든 행동이 서로 바뀌어요 (목사가 먼저 바꾼 뒤 적용). 범인의 공격이 범인 자신에게 가면 범인이 죽어요. 내 양옆에는 첫 번째 색만 보여요. 범인 편이 2명인 판에만 나와요.',
 백수:'[시민] 매 밤 범인이라고 생각하는 사람을 찍어요. 맞히면 공범(범인 편)이 되고, 범인에게는 색 없이 "백수가 범인을 찾았습니다"가 알려져요. 범인이 나를 노려도 공범이 돼요. 공범이 되면 같은 사람을 두 번 노려 죽일 수 있어요. 범인 편이 2명인 판에는 안 나와요.',
 기자:'[시민] 주변 사람의 낮 메시지와 밤 선택을 봐요 (밤 선택은 바로): 4~5명 양옆 1명씩, 6~7명 왼쪽 2명·오른쪽 1명, 8~10명 양옆 2명씩. 게임당 2번 몰래 제보할 수 있어요 (낮·밤 각각 하루 1번까지, 밤 제보는 다음 날 공개, 죽어도 공개). 매 밤 한 명을 조사해서, 같은 사람을 두 번 조사하면 거짓말할 수 있는 사람인지 참말만 하는 사람인지 알아요.',
 목사:'[시민] 매 밤 한 명과 대상·자리를 맞바꿔요: 나를 노린 행동은 그 사람에게, 그 사람을 노린 행동은 나에게 오고, 원탁 자리도 바뀌어요. 범인이 나를 노렸는데 내가 그 범인을 골랐다면 범인이 죽어요. 누가 죽으면 진짜 직업이 나에게만 보이고, 그 "목사의 눈" 결과를 공개할 수 있어요. 범인 편이 2명인 판에만 나와요.',
 정치인:'[중립] 매 밤 한 명의 다음 날 투표권을 빼앗아 내가 2표를 행사해요 (그 사람이 죽으면 1표). 범인이 살아 있을 때 투표로 처형되면 혼자 승리하고 게임이 끝나요. 시민이 이기면 져요. 거짓 직업 가능. 내 흔적은 범인과 같아요.',
 환자:'[시민] 매 밤 한 명의 다음 밤 행동을 막아요 (같은 사람 연속 불가, 의사는 못 막음). 범인을 막으면 그 밤엔 범인 편 모두 살인을 못 하지만, 범인들이 내가 환자인 걸 알게 돼요. 범인에게 죽어도 의사가 수술하면 살아나요 (의사가 있는 판은 첫 죽음 때 정체가 숨겨져요). 의사와 서로 고르면 서로 직업을 알아요. 거짓 직업 가능.',
-탐정:'[시민] 매 밤 한 명의 느낌을 봐요: 범인·스파이·도둑·사기꾼·군인·경찰 → 범인인거같다 / 의사·기자·목사·연예인 → 선량해보인다 / 버스기사·정치인·공범·환자·사이비교주 → 무서워보인다 / 백수 → 평범해보인다.',
+탐정:'[시민] 매 밤 한 명의 느낌을 봐요: 범인·스파이·도둑·사기꾼·군인·경찰 → 범인인거같다 / 의사·기자·목사·연예인 → 선량해보인다 / 버스기사·정치인·공범·환자·사이비교주 → 무서워보인다 / 백수 → 평범해보인다. 탐정이나 의사가 있는 판이면 밤에 죽은 사람의 사인(무엇으로 죽었는지)이 모두에게 공개돼요.',
 연예인:'[시민] 7명 이상 판에서 나와요. 밤마다 꼭 한 명을 찾아가야 해요 (선택 안함 없음). 같은 사람을 3번(연속 아니어도) 찾아가면 모두에게 연예인이라고 공개되고, 그 뒤 매 투표마다 2표를 행사해요.',거짓말쟁이:'[중립] 6명 이상 판에서 나와요(중립은 한 판에 1명). 1낮 흔적과 2낮 직업을 마음대로 거짓말할 수 있어요. 밤마다 한 사람에 대한 가짜 정보(몸수색 결과·탐정 힌트·기자 조사·밤 선택)를 만들어, 다음 낮에 진짜처럼 공개할 수 있어요. 승리: 8명 이상 판은 범인 편이 처형되지 않은 투표가 3번 나오면, 7명 이하 판은 처음 투표 2번 동안 내가 받은 표가 합쳐서 0표면 혼자 승리하고 게임이 끝나요.'};
 $('#roleList').innerHTML=JOBS.concat('공범').map(j=>`<li><b>${j}</b>${esc(RDESC[j])}</li>`).join('');
 const JT=[['범인','k','범인','매 밤 한 명 죽이기 (메인)','O'],['스파이','k','범인','범인 1 사망 후 2번 노려 살인 + 가짜 조사 1번','O'],['도둑','k','범인','범인 1 사망 후 2번 노려 살인 + 능력 훔치기 1번','O'],['사기꾼','k','범인','범인 1 사망 후 2번 노려 살인 + 가짜 기자 제보','O'],['공범','k','범인','없음 (백수 출신은 2번 노려 살인)','O'],['사이비교주','k','범인','목사와 같은 능력 + 목사의 눈 공유','O'],['경찰','t','시민','흔적 조사 (매밤) · 직업 조사 (1번)','O'],['군인','t','시민','찾아온 범인 반격 · 3밤 연속 겨누면 사살','O'],['의사','t','시민','살리기 / 사인 검사 / 수술 1번','O'],['환자','t','시민','한 명 다음 밤 행동 막기','O'],['버스기사','t','시민','두 사람 대상 바꾸기','X'],['기자','t','시민','주변 엿보기 · 조사 2번 → 거짓말 여부 · 제보 2번','X'],['목사','t','시민','나와 한 명 대상·자리 바꾸기 · 죽은 사람 직업','X'],['탐정','t','시민','한 명 느낌 힌트','X'],['연예인','t','시민','같은 사람 3번 찾아가면 공개 · 매 투표 2표','X'],['백수','t','시민','범인 찍기 (맞히면 공범)','X'],['정치인','n','중립','투표권 뺏기 (나는 2표)','O'],['거짓말쟁이','n','중립','가짜 정보 만들기 · 모든 거짓말','O']];
