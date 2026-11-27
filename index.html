@@ -82,9 +82,15 @@ h1,h2,h3{font-family:"Black Han Sans",sans-serif;font-weight:400;margin:0;line-h
 .lh{font-size:17px!important;font-weight:800}.lt{margin-left:auto;display:flex;gap:4px;flex:none}
 .fz{min-height:30px!important;padding:2px 9px!important;font-size:13px!important;border-radius:8px}
 .ftb{font-size:15px!important;min-height:36px!important;padding:4px 12px!important}
-.lg.max{position:fixed!important;inset:8px;z-index:60;margin:0;display:flex!important;box-shadow:0 0 0 100vmax #000c}
+.lg.max{position:fixed!important;top:20px;bottom:auto;max-height:calc(100vh - 40px);height:auto!important;left:0;right:0;margin:0 auto!important;width:min(760px,calc(100vw - 40px));z-index:60;display:flex!important;box-shadow:0 0 0 100vmax #000c}
 .src{font-size:.75em;font-weight:800;color:var(--gold);border:1px solid var(--gold);border-radius:6px;padding:0 5px;margin-right:4px;vertical-align:middle}
-.lg.max .list{max-height:none!important}
+.it2{padding:.55em 2.2em .55em .75em!important;border-radius:.65em!important;border-left-width:.32em!important;line-height:1.5}
+.it2 .xb{width:1.55em!important;min-height:1.55em!important;height:1.55em;font-size:.8em!important;top:.25em!important;right:.25em!important}
+.it2 .who{font-size:.82em!important}.it2 .ia{gap:.4em;margin-top:.4em}.it2 .ia button{font-size:.88em!important;min-height:2em!important;padding:.1em .8em!important}
+.it2.hidit{font-size:calc(var(--lfs) * .75)!important;padding:.3em .7em!important}
+.gh{padding:.05em .75em!important;margin:.5em 0 .1em!important}
+#pubs,#feed{gap:calc(var(--lfs) * .38)!important}
+.lg.max .list{max-height:none!important;flex:0 1 auto!important;overflow-y:auto}
 .hb{flex:none;min-height:30px;padding:2px 10px;font-size:13px}.hidmsg{display:none;color:var(--dim);font-size:13px;margin:6px 0}.lg.hid .list{display:none!important}.lg.hid .hidmsg{display:block}.lg.hid{flex:none!important}.metog{background:none;border:none;padding:0;min-height:32px;font-size:13px;color:var(--dim);font-weight:700}#act h3{font-size:20px!important}#act .hint{font-size:13px;margin:2px 0 6px}
 .tg small{display:block;color:var(--dim);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chip{box-shadow:0 0 0 1px #ffffff33;display:inline-block;padding:0 7px;border-radius:6px;background:var(--c);color:#111;font-weight:700;font-size:14px;line-height:1.5}
@@ -162,7 +168,7 @@ table{border-collapse:collapse;width:100%}td,th{padding:6px;border-bottom:1px so
     <div class="right">
       <div class="card pane" id="act"></div>
       <div class="tabs"><button data-x="tab" data-v="act">할 일</button><button data-x="tab" data-v="log">게시판 · 본 것</button><button data-x="tab" data-v="me">내 정보</button></div>
-      <div class="pane" id="logs"><div class="card lg" id="cpubs"><div class="row lh" style="justify-content:space-between;flex-wrap:nowrap"><span>공개 게시판</span><span class="lt"><button class="fz" data-fz="-1" title="글씨 작게">가-</button><button class="fz" data-fz="1" title="글씨 크게">가+</button><button class="fz" data-big="cpubs" title="크게 보기">⤢ 크게</button></span></div><div class="list" id="pubs"></div><p class="hidmsg">숨겨 두었어요 · "보이기"를 누르면 다시 보여요</p></div><div class="card lg" id="cfeed"><div class="row lh" style="gap:6px;flex-wrap:nowrap"><button data-x="ftab" data-v="feed" class="ftb" id="ftb1">내가 본 것</button><button data-x="ftab" data-v="did" class="ftb" id="ftb3">내 기록</button><button data-x="ftab" data-v="vis" class="ftb" id="ftb2">나에게 온 사람</button><span class="lt"><button class="fz" data-fz="-1" title="글씨 작게">가-</button><button class="fz" data-fz="1" title="글씨 크게">가+</button><button class="fz" data-big="cfeed" title="크게 보기">⤢ 크게</button></span></div><p class="hidmsg">숨겨 두었어요 · "보이기"를 누르면 다시 보여요</p><div class="list" id="feed"></div></div></div>
+      <div class="pane" id="logs"><div class="card lg" id="cpubs"><div class="row lh" style="justify-content:space-between;flex-wrap:nowrap"><span>공개 게시판</span><span class="lt"><button class="fz" data-fz="-1" title="글씨 작게">가-</button><button class="fz" data-fz="1" title="글씨 크게">가+</button><button class="fz" data-big="cpubs" title="크게 보기">⤢ 크게</button></span></div><div class="list" id="pubs"></div><p class="hidmsg">숨겨 두었어요 · "보이기"를 누르면 다시 보여요</p></div><div class="card lg" id="cfeed"><div class="row lh" style="gap:6px;flex-wrap:nowrap"><button data-x="ftab" data-v="feed" class="ftb" id="ftb1">내가 본 것</button><button data-x="ftab" data-v="did" class="ftb" id="ftb3">내 기록</button><button data-x="ftab" data-v="vis" class="ftb" id="ftb2">나에게 온 사람</button><span class="lt"><button class="fz" data-big="cfeed" title="크게 보기">⤢ 크게</button></span></div><p class="hidmsg">숨겨 두었어요 · "보이기"를 누르면 다시 보여요</p><div class="list" id="feed"></div></div></div>
     </div>
   </div>
 </div>
